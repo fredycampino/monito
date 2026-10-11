@@ -1,0 +1,15 @@
+{
+  "llm": {
+    "provider": "deepseek",
+    "model": "deepseek-v4-flash"
+  },
+  "loop": {
+    "max_turns": 1,
+    "max_tool_calls": 1
+  },
+  "debug": {
+    "log_request": false,
+    "log_streaming": false
+  },
+  "tools": {}
+}

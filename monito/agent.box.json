@@ -1,0 +1,11 @@
+{
+  "tools": {
+    "shell": {
+      "allowed_paths": ["/"],
+      "allowlist_enabled": false
+    },
+    "files": {
+      "all": ["/"]
+    }
+  }
+}

@@ -1,0 +1,31 @@
+name: monito
+description: "Monito agent developer"
+version: "0.1"
+start: intro
+
+inputs: {}
+
+steps:
+  - notify: intro
+    message: "I am monito, an agentic flows developer"
+    next: ask_user
+
+  - wait_input: ask_user
+    prompt: "Write a task..."
+    next: monito
+
+  - agent: monito
+    system:
+      file: "./system.md"
+    instructions:
+      - "create-flows"
+      - "solve-task-style"
+      - "response-style"
+      - "skiller-user"
+      - "./use-telegram.md"
+    task: '{{output_value("ask_user").payload.text}}'
+    tools:
+      - files
+      - shell
+    max_turns: 50
+    next: ask_user

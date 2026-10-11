@@ -1,0 +1,9 @@
+[tool.uv.workspace]
+members = ["tools/*"]
+exclude = ["tools/_placeholder"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
