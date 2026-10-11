@@ -1,0 +1,141 @@
+name: Publish
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+  workflow_dispatch:
+    inputs:
+      release_pr:
+        description: Merged release pull request number to publish or retry
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  publish:
+    if: >-
+      (github.event_name == 'pull_request' &&
+       github.event.pull_request.merged == true &&
+       github.event.pull_request.head.repo.full_name == github.repository &&
+       startsWith(github.event.pull_request.head.ref, 'release/')) ||
+      github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: publish-${{ github.event.pull_request.number || inputs.release_pr }}
+      cancel-in-progress: false
+
+    steps:
+      - name: Resolve merged release commits
+        id: release
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_NUMBER: ${{ github.event.pull_request.number || inputs.release_pr }}
+          EVENT_MERGED: ${{ github.event.pull_request.merged }}
+          EVENT_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          EVENT_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          EVENT_MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "$EVENT_NAME" = workflow_dispatch ]; then
+            pr=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER")
+            merged=$(jq -r .merged <<< "$pr")
+            head_ref=$(jq -r .head.ref <<< "$pr")
+            head_sha=$(jq -r .head.sha <<< "$pr")
+            merge_sha=$(jq -r .merge_commit_sha <<< "$pr")
+          else
+            merged=$EVENT_MERGED
+            head_ref=$EVENT_HEAD_REF
+            head_sha=$EVENT_HEAD_SHA
+            merge_sha=$EVENT_MERGE_SHA
+          fi
+
+          test "$merged" = true
+          case "$head_ref" in release/*) ;; *) echo "not a release branch: $head_ref" >&2; exit 1;; esac
+          test -n "$head_sha"
+          test -n "$merge_sha"
+
+          echo "head_ref=$head_ref" >> "$GITHUB_OUTPUT"
+          echo "head_sha=$head_sha" >> "$GITHUB_OUTPUT"
+          echo "merge_sha=$merge_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout merged main commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.release.outputs.merge_sha }}
+          fetch-depth: 0
+
+      - name: Verify tested tree and release identity
+        id: identity
+        env:
+          HEAD_REF: ${{ steps.release.outputs.head_ref }}
+          HEAD_SHA: ${{ steps.release.outputs.head_sha }}
+          MERGE_SHA: ${{ steps.release.outputs.merge_sha }}
+        run: |
+          git fetch --force origin "$HEAD_SHA" "$MERGE_SHA"
+          version=$(tr -d '[:space:]' < VERSION)
+          expected_ref="release/$version"
+          test "$HEAD_REF" = "$expected_ref" || {
+            echo "release branch $HEAD_REF does not match VERSION $version" >&2
+            exit 1
+          }
+
+          release_tree=$(git rev-parse "$HEAD_SHA^{tree}")
+          merge_tree=$(git rev-parse "$MERGE_SHA^{tree}")
+          test "$release_tree" = "$merge_tree" || {
+            echo "merged tree differs from the release commit validated by CI" >&2
+            exit 1
+          }
+
+          tag="v$version"
+          if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+            tagged_commit=$(git rev-parse "$tag^{}")
+            test "$tagged_commit" = "$MERGE_SHA" || {
+              echo "existing tag $tag points to $tagged_commit, not $MERGE_SHA" >&2
+              exit 1
+            }
+            echo "already_published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "already_published=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GitHub Container Registry
+        if: steps.identity.outputs.already_published == 'false'
+        run: echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Build and publish Monito Box
+        if: steps.identity.outputs.already_published == 'false'
+        env:
+          IMAGE: ghcr.io/${{ github.repository_owner }}/monito-box
+          VERSION: ${{ steps.identity.outputs.version }}
+          REVISION: ${{ steps.release.outputs.merge_sha }}
+        run: |
+          docker build \
+            --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
+            --label "org.opencontainers.image.revision=$REVISION" \
+            --label "org.opencontainers.image.version=$VERSION" \
+            --tag "$IMAGE:$VERSION" \
+            .
+          docker push "$IMAGE:$VERSION"
+
+      - name: Create immutable release tag
+        if: steps.identity.outputs.already_published == 'false'
+        env:
+          TAG: ${{ steps.identity.outputs.tag }}
+          MERGE_SHA: ${{ steps.release.outputs.merge_sha }}
+        run: |
+          git tag --annotate "$TAG" "$MERGE_SHA" --message "Release $TAG"
+          git push origin "refs/tags/$TAG"
+
+      - name: Report idempotent retry
+        if: steps.identity.outputs.already_published == 'true'
+        run: echo "${{ steps.identity.outputs.tag }} already identifies this merged release; nothing to publish."

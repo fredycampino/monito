@@ -48,29 +48,31 @@ A workflow must finish before its output is used by the next one. Publishing an 
 4. `[dev]` opens a pull request to `main`.
 5. `[ci]` rejects release pull requests with more than one commit; otherwise it verifies version consistency, changelog structure, tests, flows, and the container build.
 6. `[admin]` reviews and merges the release preparation into `main`.
-7. `[admin]` creates or authorizes the annotated tag `vX.Y.Z` on that merge commit, preserving any SemVer prerelease suffix.
+7. When the release PR is squash-merged, `[ci]` compares the merge commit tree with the validated release commit tree. If they match, `[ci]` creates the annotated tag `vX.Y.Z` on the merge commit, preserving any SemVer prerelease suffix.
 
 The tag identifies the exact source used for publication. No deployment occurs in this workflow.
 
 ## Publish
 
-**Purpose:** build and distribute artifacts for an existing release tag.
+**Purpose:** build and distribute artifacts after a release PR is merged.
 
-**Input:** Git tag `vX.Y.Z`.
+**Input:** a merged `release/X.Y.Z` pull request.
 
-**Output:** immutable artifacts available from registries.
+**Output:** an immutable Git tag and artifacts available from registries.
 
-1. `[ci]` checks out the tag and repeats release verification.
-2. `[ci]` builds and publishes the OCI image:
+1. `[ci]` checks that the squash-merge tree is identical to the release commit tree validated by CI.
+2. `[ci]` verifies the release branch, `VERSION`, and Git tag. A retry exits safely when the existing tag already points to the same merge commit; it fails if it points elsewhere.
+3. `[ci]` builds and publishes the OCI image:
    ```text
    ghcr.io/fredycampino/monito-box:X.Y.Z
    ```
-3. `[ci]` may also update the mutable convenience tag:
+4. `[ci]` creates the annotated tag `vX.Y.Z` on the merged `main` commit.
+5. `[ci]` may also update the mutable convenience tag:
    ```text
    ghcr.io/fredycampino/monito-box:latest
    ```
-4. `[ci]` may publish `sk-telegram` and `sk-cloudflared` to PyPI when those standalone CLIs are part of the release policy.
-5. `[ci]` records artifact digests and publication results in the release metadata.
+6. `[ci]` may publish `sk-telegram` and `sk-cloudflared` to PyPI when those standalone CLIs are part of the release policy.
+7. `[ci]` records artifact digests and publication results in the release metadata.
 
 Production deployment must use `:X.Y.Z` or, preferably, an OCI digest. It must not rely on `:latest`.
 
