@@ -6,7 +6,7 @@ All notable changes to Monito are documented in this file.
 
 ### Added
 
-- Feature and release pull-request validation workflows with local CI validators.
+- Unified pull-request CI validation with local feature and release validators.
 
 ## 0.1.0 - 2026-10-09
 
