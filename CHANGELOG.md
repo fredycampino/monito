@@ -4,6 +4,11 @@ All notable changes to Monito are documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+- Create and push the immutable release tag before publishing its container image.
+- Configure the GitHub Actions tagger identity for annotated release tags.
+
 ## 0.1.0-beta.2 - 2026-10-11
 
 ### Added
