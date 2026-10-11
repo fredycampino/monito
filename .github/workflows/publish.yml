@@ -105,21 +105,30 @@ jobs:
               echo "existing tag $tag points to $tagged_commit, not $MERGE_SHA" >&2
               exit 1
             }
-            echo "already_published=true" >> "$GITHUB_OUTPUT"
+            echo "tag_exists=true" >> "$GITHUB_OUTPUT"
           else
-            echo "already_published=false" >> "$GITHUB_OUTPUT"
+            echo "tag_exists=false" >> "$GITHUB_OUTPUT"
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
 
+      - name: Create immutable release tag
+        if: steps.identity.outputs.tag_exists == 'false'
+        env:
+          TAG: ${{ steps.identity.outputs.tag }}
+          MERGE_SHA: ${{ steps.release.outputs.merge_sha }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag --annotate "$TAG" "$MERGE_SHA" --message "Release $TAG"
+          git push origin "refs/tags/$TAG"
+
       - name: Log in to GitHub Container Registry
-        if: steps.identity.outputs.already_published == 'false'
         run: echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Build and publish Monito Box
-        if: steps.identity.outputs.already_published == 'false'
         env:
           IMAGE: ghcr.io/${{ github.repository_owner }}/monito-box
           VERSION: ${{ steps.identity.outputs.version }}
@@ -132,16 +141,3 @@ jobs:
             --tag "$IMAGE:$VERSION" \
             .
           docker push "$IMAGE:$VERSION"
-
-      - name: Create immutable release tag
-        if: steps.identity.outputs.already_published == 'false'
-        env:
-          TAG: ${{ steps.identity.outputs.tag }}
-          MERGE_SHA: ${{ steps.release.outputs.merge_sha }}
-        run: |
-          git tag --annotate "$TAG" "$MERGE_SHA" --message "Release $TAG"
-          git push origin "refs/tags/$TAG"
-
-      - name: Report idempotent retry
-        if: steps.identity.outputs.already_published == 'true'
-        run: echo "${{ steps.identity.outputs.tag }} already identifies this merged release; nothing to publish."
