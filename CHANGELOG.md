@@ -2,6 +2,12 @@
 
 All notable changes to Monito are documented in this file.
 
+## Unreleased
+
+### Added
+
+- Feature and release pull-request validation workflows with local CI validators.
+
 ## 0.1.0 - 2026-10-09
 
 ### Added

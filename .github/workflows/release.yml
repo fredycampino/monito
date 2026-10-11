@@ -1,0 +1,70 @@
+name: Release PR
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    if: startsWith(github.event.pull_request.head.ref, 'release/')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install verification dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest ruff
+          python -m pip install -e tools/telegram -e tools/cloudflared
+
+      - name: Validate branch shape
+        env:
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+          GITHUB_HEAD_REF: ${{ github.head_ref }}
+        run: |
+          python scripts/ci/validate_pr_branch.py \
+            --base-ref "$GITHUB_BASE_REF" \
+            --expected-base main \
+            --head-ref "$GITHUB_HEAD_REF" \
+            --head-prefix release/
+
+      - name: Validate release metadata
+        env:
+          GITHUB_HEAD_REF: ${{ github.head_ref }}
+        run: python scripts/ci/validate_release_pr.py --head-ref "$GITHUB_HEAD_REF"
+
+      - name: Run Ruff
+        run: python -m ruff check .
+
+      - name: Run tests
+        run: |
+          python -m pytest tools/telegram/tests
+          python -m pytest tools/cloudflared/tests
+
+      - name: Validate configuration
+        run: |
+          python -m json.tool monito/agent.json > /dev/null
+          python -m json.tool monito/agent.box.json > /dev/null
+          HOST_UID=1000 HOST_GID=1000 docker compose config > /dev/null
+
+      - name: Build Monito Box
+        run: docker build --tag monito-box:ci .
