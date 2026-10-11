@@ -8,6 +8,10 @@ All notable changes to Monito are documented in this file.
 
 - Automated publish workflow that verifies squash-merge tree identity before creating a release tag and publishing Monito Box to GHCR.
 
+### Fixed
+
+- Allow manually dispatched publish retries to resolve their merged release pull request from a release version.
+
 ## 0.1.0-beta.1 - 2026-10-11
 
 ### Added

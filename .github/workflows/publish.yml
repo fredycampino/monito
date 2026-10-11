@@ -8,14 +8,15 @@ on:
       - closed
   workflow_dispatch:
     inputs:
-      release_pr:
-        description: Merged release pull request number to publish or retry
+      version:
+        description: Release version to publish or retry, for example 0.1.0-beta.1
         required: true
         type: string
 
 permissions:
   contents: write
   packages: write
+  pull-requests: read
 
 jobs:
   publish:
@@ -27,7 +28,7 @@ jobs:
       github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     concurrency:
-      group: publish-${{ github.event.pull_request.number || inputs.release_pr }}
+      group: publish-${{ github.event.pull_request.number || inputs.version }}
       cancel-in-progress: false
 
     steps:
@@ -35,7 +36,7 @@ jobs:
         id: release
         env:
           EVENT_NAME: ${{ github.event_name }}
-          PR_NUMBER: ${{ github.event.pull_request.number || inputs.release_pr }}
+          RELEASE_VERSION: ${{ inputs.version }}
           EVENT_MERGED: ${{ github.event.pull_request.merged }}
           EVENT_HEAD_REF: ${{ github.event.pull_request.head.ref }}
           EVENT_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -43,9 +44,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           if [ "$EVENT_NAME" = workflow_dispatch ]; then
-            pr=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER")
-            merged=$(jq -r .merged <<< "$pr")
-            head_ref=$(jq -r .head.ref <<< "$pr")
+            test -n "$RELEASE_VERSION"
+            head_ref="release/$RELEASE_VERSION"
+            pr=$(gh api --method GET "repos/$GITHUB_REPOSITORY/pulls" \
+              -f state=closed \
+              -f base=main \
+              -f head="$GITHUB_REPOSITORY_OWNER:$head_ref" \
+              | jq -e '[.[] | select(.merged_at != null)] | if length == 1 then .[0] else error("expected one merged release PR") end')
+            merged=true
             head_sha=$(jq -r .head.sha <<< "$pr")
             merge_sha=$(jq -r .merge_commit_sha <<< "$pr")
           else
