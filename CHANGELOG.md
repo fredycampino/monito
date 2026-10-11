@@ -4,6 +4,10 @@ All notable changes to Monito are documented in this file.
 
 ## Unreleased
 
+- Nothing yet.
+
+## 0.1.0-beta.3 - 2026-10-11
+
 ### Added
 
 - Versioned server deployment manifest for Monito Box with a non-root service identity and persistent `/data` storage.
