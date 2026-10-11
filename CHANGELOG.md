@@ -4,14 +4,11 @@ All notable changes to Monito are documented in this file.
 
 ## Unreleased
 
+## 0.1.0-beta.1 - 2026-10-11
+
 ### Added
 
 - Unified pull-request CI validation with local feature and release validators.
-
-## 0.1.0 - 2026-10-09
-
-### Added
-
 - Monito agent flow with interactive task handling and guidance for Telegram and Cloudflare tunnels.
 - `sk-telegram` CLI for receiving Telegram webhooks, sending responses, checking status, and managing webhook configuration.
 - `sk-cloudflared` CLI for Cloudflare authentication and tunnel lifecycle management.

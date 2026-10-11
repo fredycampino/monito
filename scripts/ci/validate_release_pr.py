@@ -8,8 +8,11 @@ import subprocess
 import sys
 from pathlib import Path
 
-SEMVER_PATTERN = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$")
-TAG_PATTERN = re.compile(r"^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$")
+SEMVER_PATTERN = re.compile(
+    r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
+    r"(?:-((?:0|[1-9]\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9]\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*))?$"
+)
+TAG_PATTERN = re.compile(r"^v(?P<version>.+)$")
 PLACEHOLDER_LINES = {
     "- Nothing yet.",
     "- Update this section when a branch is ready for release.",
@@ -37,12 +40,23 @@ def release_version(head_ref: str) -> str:
     return version
 
 
-def version_tuple(version: str) -> tuple[int, int, int]:
-    major, minor, patch = version.split(".")
-    return int(major), int(minor), int(patch)
+def version_key(version: str) -> tuple[int, int, int, tuple[tuple[int, int | str], ...]]:
+    match = SEMVER_PATTERN.fullmatch(version)
+    if match is None:
+        raise ValueError(f"invalid semantic version: {version}")
+
+    major, minor, patch, prerelease = match.groups()
+    if prerelease is None:
+        prerelease_key = ((2, ""),)
+    else:
+        prerelease_key = tuple(
+            (0, int(identifier)) if identifier.isdigit() else (1, identifier)
+            for identifier in prerelease.split(".")
+        )
+    return int(major), int(minor), int(patch), prerelease_key
 
 
-def published_versions() -> set[tuple[int, int, int]]:
+def published_versions() -> set[str]:
     completed = subprocess.run(
         ["git", "tag", "--list", "v*"],
         check=True,
@@ -52,19 +66,19 @@ def published_versions() -> set[tuple[int, int, int]]:
     versions = set()
     for tag in completed.stdout.splitlines():
         match = TAG_PATTERN.fullmatch(tag)
-        if match:
-            versions.add(tuple(int(part) for part in match.groups()))
+        if match and SEMVER_PATTERN.fullmatch(match.group("version")):
+            versions.add(match.group("version"))
     return versions
 
 
 def validate_release_version(version: str) -> None:
-    proposed = version_tuple(version)
     published = published_versions()
-    if proposed in published:
+    if version in published:
         fail(f"release tag already exists: v{version}")
-    if published and proposed <= max(published):
-        latest = ".".join(str(part) for part in max(published))
-        fail(f"release version {version} must be greater than latest tag v{latest}")
+    if published:
+        latest = max(published, key=version_key)
+        if version_key(version) <= version_key(latest):
+            fail(f"release version {version} must be greater than latest tag v{latest}")
 
 
 def section(lines: list[str], heading: str) -> list[str]:
