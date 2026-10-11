@@ -1,4 +1,4 @@
-name: Release PR
+name: CI
 
 on:
   pull_request:
@@ -15,7 +15,6 @@ permissions:
 
 jobs:
   validate:
-    if: startsWith(github.event.pull_request.head.ref, 'release/')
     runs-on: ubuntu-latest
 
     steps:
@@ -41,13 +40,33 @@ jobs:
           GITHUB_BASE_REF: ${{ github.base_ref }}
           GITHUB_HEAD_REF: ${{ github.head_ref }}
         run: |
+          case "$GITHUB_HEAD_REF" in
+            feature/*) head_prefix='feature/'; pr_kind='feature' ;;
+            release/*) head_prefix='release/'; pr_kind='release' ;;
+            *)
+              echo "PR branch must start with feature/ or release/, got: $GITHUB_HEAD_REF" >&2
+              exit 1
+              ;;
+          esac
+
           python scripts/ci/validate_pr_branch.py \
             --base-ref "$GITHUB_BASE_REF" \
             --expected-base main \
             --head-ref "$GITHUB_HEAD_REF" \
-            --head-prefix release/
+            --head-prefix "$head_prefix"
+          echo "pr_kind=$pr_kind" >> "$GITHUB_ENV"
+
+      - name: Validate feature changelog
+        if: env.pr_kind == 'feature'
+        env:
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+        run: |
+          python scripts/ci/validate_feature_pr.py \
+            --base-ref "$GITHUB_BASE_REF" \
+            --expected-base main
 
       - name: Validate release metadata
+        if: env.pr_kind == 'release'
         env:
           GITHUB_HEAD_REF: ${{ github.head_ref }}
         run: python scripts/ci/validate_release_pr.py --head-ref "$GITHUB_HEAD_REF"
