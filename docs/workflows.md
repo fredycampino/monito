@@ -40,15 +40,15 @@ A workflow must finish before its output is used by the next one. Publishing an 
 
 **Input:** a releasable commit on `main`.
 
-**Output:** an annotated Git tag `vX.Y.Z`.
+**Output:** an annotated Git tag `vX.Y.Z` (or a SemVer prerelease such as `v0.1.0-beta.1`).
 
 1. `[admin]` selects the next semantic version.
-2. `[dev]` creates `release/X.Y.Z` from `main`, moves the accumulated `Unreleased` entries to a dated `X.Y.Z` section in `CHANGELOG.md`, creates a new empty `Unreleased` section, and updates `VERSION`.
+2. `[dev]` creates `release/X.Y.Z` from `main` (or a SemVer prerelease such as `release/0.1.0-beta.1`), moves the accumulated `Unreleased` entries to a dated version section in `CHANGELOG.md`, creates a new empty `Unreleased` section, and updates `VERSION`.
 3. `[dev]` squashes the release branch so the pull request contains exactly one commit.
 4. `[dev]` opens a pull request to `main`.
 5. `[ci]` rejects release pull requests with more than one commit; otherwise it verifies version consistency, changelog structure, tests, flows, and the container build.
 6. `[admin]` reviews and merges the release preparation into `main`.
-7. `[admin]` creates or authorizes the annotated tag `vX.Y.Z` on that merge commit.
+7. `[admin]` creates or authorizes the annotated tag `vX.Y.Z` on that merge commit, preserving any SemVer prerelease suffix.
 
 The tag identifies the exact source used for publication. No deployment occurs in this workflow.
 
