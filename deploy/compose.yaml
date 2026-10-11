@@ -1,0 +1,25 @@
+services:
+  monito:
+    image: ghcr.io/fredycampino/monito-box:${MONITO_VERSION}
+    container_name: monito
+    restart: unless-stopped
+    user: "${MONITO_UID}:${MONITO_GID}"
+    environment:
+      HOME: /data/home
+      AGENT_DB_PATH: /data/skiller/agent.db
+      TERM: "${TERM:-xterm-256color}"
+      COLORTERM: "${COLORTERM:-truecolor}"
+    volumes:
+      - /opt/monito/data:/data
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:mode=1777
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["mkdir -p /data/home /data/skiller /data/workspace && exec sleep infinity"]
+    init: true
+    stdin_open: true
+    tty: true
