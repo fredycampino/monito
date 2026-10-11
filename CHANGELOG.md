@@ -4,8 +4,14 @@ All notable changes to Monito are documented in this file.
 
 ## Unreleased
 
+### Added
+
+- Versioned server deployment manifest for Monito Box with a non-root service identity and persistent `/data` storage.
+- Release validation now requires the deploy image version to match `VERSION`.
+
 ### Fixed
 
+- Use Monito Box's flow-local agent override without applying it globally to every Skiller agent.
 - Create and push the immutable release tag before publishing its container image.
 - Configure the GitHub Actions tagger identity for annotated release tags.
 

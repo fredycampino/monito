@@ -14,6 +14,9 @@ RUN groupadd --gid 10001 monito \
 
 # The application is part of the immutable image. Mutable state belongs in /data.
 COPY monito/ /opt/monito/monito/
+# Production uses a flow-local override. Skiller merges it with the persistent
+# global config under /data/home/.skiller/settings/agent.json.
+COPY monito/agent.box.json /opt/monito/monito/agent.json
 
 # Running from this directory makes the bundled flow resolve as `@monito` without
 # changing the user's persistent Skiller configuration.

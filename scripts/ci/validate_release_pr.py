@@ -105,6 +105,21 @@ def main() -> None:
     if file_version != version:
         fail(f"VERSION must match release branch version {version}, got {file_version}")
 
+    deploy_environment = Path("deploy/compose.env.example").read_text(encoding="utf-8")
+    deploy_version = next(
+        (
+            line.removeprefix("MONITO_VERSION=")
+            for line in deploy_environment.splitlines()
+            if line.startswith("MONITO_VERSION=")
+        ),
+        None,
+    )
+    if deploy_version != version:
+        fail(
+            "deploy/compose.env.example MONITO_VERSION must match "
+            f"release branch version {version}, got {deploy_version!r}"
+        )
+
     changelog = Path("CHANGELOG.md").read_text(encoding="utf-8").splitlines()
     unreleased_entries = entries(section(changelog, "## Unreleased")) - PLACEHOLDER_LINES
     if unreleased_entries:
