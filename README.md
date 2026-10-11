@@ -44,3 +44,4 @@ El desarrollo y la release son conjuntos, pero la instalación es independiente:
 ```bash
 uv tool install sk-telegram==0.1.0
 ```
+> Temporary CI branch-policy verification PR.
