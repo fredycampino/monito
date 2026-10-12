@@ -4,7 +4,7 @@
 
 ## Contents
 
-The image is based on `python:3.12-slim` and installs `skiller==0.1.0-beta.42` from PyPI. It runs as the unprivileged `monito` user (UID and GID `10001`) by default, starts the Skiller CLI by default, and bundles the `@monito` flow under `/opt/monito/monito/`.
+The image is based on `python:3.12-slim` and installs `skiller==0.1.0-beta.43` from PyPI. It runs as the unprivileged `monito` user (UID and GID `10001`) by default, starts the Skiller CLI by default, and bundles the `@monito` flow under `/opt/monito/monito/`.
 
 Skiller is pinned deliberately. A published image must always identify the exact runtime it contains. Updating Skiller means changing the pin, validating compatibility, and publishing a new Monito Box image.
 
@@ -33,7 +33,7 @@ The default command shows Skiller help:
 docker run --rm monito-box:dev
 ```
 
-The image has no application state and exposes no port. Compose selects the bundled `agent.box.json` through `AGENT_AGENT_CONFIG_FILE`; it enables unrestricted Skiller `shell` and `files` tools inside the container while leaving the provider and model selected during interactive onboarding in persistent user configuration.
+The image has no application state and exposes no port. The image selects the bundled `agent.box.json` through `MONITO_AGENT_CONFIG_FILE`, referenced only by Monito’s agent step using `config.file`; it enables unrestricted Skiller `shell` and `files` tools inside the container while leaving the provider and model selected during interactive onboarding in persistent user configuration.
 
 ## Local Compose state
 
@@ -93,3 +93,5 @@ The Dockerfile describes image contents, not its registry name. A release pipeli
 ```text
 ghcr.io/<owner>/monito-box:<version>
 ```
+
+For local development outside Docker, export `MONITO_AGENT_CONFIG_FILE=./agent.json` before running `skiller @monito`. The reference resolves relative to `monito/monito.yaml`. Missing variables fail explicitly; other agents do not use this variable. Box keeps both profiles intact and inherits its LLM configuration from persistent global settings.

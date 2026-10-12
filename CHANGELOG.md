@@ -4,7 +4,10 @@ All notable changes to Monito are documented in this file.
 
 ## Unreleased
 
-- Nothing yet.
+### Changed
+
+- Upgrade Monito Box to Skiller beta.43, including read-only-safe authentication.
+- Select the Monito agent profile explicitly through `config.file` and `MONITO_AGENT_CONFIG_FILE`, keeping development and Box profiles separate.
 
 ## 0.1.0-beta.3 - 2026-10-11
 
