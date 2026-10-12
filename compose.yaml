@@ -7,7 +7,7 @@ services:
     environment:
       HOME: /data/home
       AGENT_DB_PATH: /data/skiller/agent.db
-      AGENT_AGENT_CONFIG_FILE: /opt/monito/monito/agent.box.json
+      MONITO_AGENT_CONFIG_FILE: /opt/monito/monito/agent.box.json
       # Preserve the host terminal capabilities for Textual/STUI.
       TERM: "${TERM:-xterm-256color}"
       COLORTERM: "${COLORTERM:-truecolor}"
