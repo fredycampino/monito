@@ -4,6 +4,10 @@ All notable changes to Monito are documented in this file.
 
 ## Unreleased
 
+- Nothing yet.
+
+## 0.1.0-beta.4 - 2026-10-12
+
 ### Changed
 
 - Upgrade Monito Box to Skiller beta.43, including read-only-safe authentication.
