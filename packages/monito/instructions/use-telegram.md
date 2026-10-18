@@ -55,12 +55,18 @@ skiller run @webhook --arg "run_id=$SUBSCRIBER_RUN_ID" \
 ```
 
 ## 5. Handle WEBHOOK_WAIT_CONFLICT
-If Skiller rejects startup, show its original JSON: it identifies the run already
-waiting for that webhook and key. Do not delete that run or hide the error. Do
-not confuse this conflict with `ALREADY_REGISTERED`, which the flow accepts.
+When `WEBHOOK_WAIT_CONFLICT` blocks a requested subscription, replace the existing
+listener: show the original JSON, delete the listener run identified by the
+error, then repeat step 4 with the new subscriber's `run_id`. This replacement is
+authorized as part of starting the subscription; no additional confirmation is
+needed. Delete only the conflicting listener, never its subscriber run.
+`ALREADY_REGISTERED` is different: the flow accepts it and continues waiting.
 
 ```bash
-skiller status <run_id reported by WEBHOOK_WAIT_CONFLICT>
+skiller delete <listener_run_id reported by WEBHOOK_WAIT_CONFLICT>
+skiller run @webhook --arg "run_id=$SUBSCRIBER_RUN_ID" \
+  --arg webhook=telegram --arg key=inbox \
+  --arg 'labels=[Notification][Telegram]'
 ```
 
 ## 6. Register the consumer with GgTelegram

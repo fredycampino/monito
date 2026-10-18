@@ -25,3 +25,16 @@ def test_shared_image_selection(prefix, version):
     config = json.loads(result.stdout)
     for service, image in [("monito", "monito-box"), ("ggets", "ggets")]:
         assert config["services"][service]["image"] == f"{prefix}{image}:{version}"
+
+
+def test_agent_profile_is_external_and_read_only():
+    import yaml
+
+    compose = yaml.safe_load((ROOT / "compose.yaml").read_text())
+    mounts = compose["services"]["monito"]["volumes"]
+    profile = next(m for m in mounts if m["target"] == "/etc/monito/agent.json")
+    assert profile["source"] == "${MONITO_SETTINGS_HOST_DIR:-./data/monito/settings}/agent.json"
+    assert profile["read_only"] is True
+    assert not (ROOT / "packages/monito/agent.json").exists()
+    example = json.loads((ROOT / "data-examples/monito/settings/agent.json").read_text())
+    assert "tools" in example

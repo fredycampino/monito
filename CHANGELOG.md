@@ -12,10 +12,17 @@ All notable changes to Monito are documented in this file.
 
 ### Changed
 
+- Provide a data-examples deployment layout and a read-only Monito profile at /etc/monito/agent.json.
+- Refresh Box, package installation and internet search instructions; define explicit webhook listener handover.
+
 - Isolate the tools API and Telegram ingress on separate container networks with interface-specific listeners.
 - Mount Monito runtime configuration and agent settings from the host; preserve the package resource layout in the wheel.
 - Use one Compose definition for local builds and versioned deployment of the Monito/Ggets image pair.
 - Replace standalone Telegram tooling with Ggets operations while retaining feature/release approval and single-commit checks.
+
+### Fixed
+
+- Deliver webhook notifications from /data/workspace so resumed agents retain an authorized working directory.
 
 ## 0.1.0-beta.4 - 2026-10-12
 

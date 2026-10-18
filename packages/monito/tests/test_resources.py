@@ -1,4 +1,3 @@
-import json
 from importlib.resources import files
 
 import yaml
@@ -10,7 +9,6 @@ def test_flow():
     root = flow_path().parent
     flow = yaml.safe_load(root.joinpath("monito.yaml").read_text())
     assert flow["start"] == "ask_user"
-    assert "llm" not in json.loads(root.joinpath("agent.json").read_text())
     assert root.joinpath("system.md").is_file()
     agent = next(step for step in flow["steps"] if step.get("agent") == "monito")
     for reference in agent["instructions"]:
@@ -18,5 +16,5 @@ def test_flow():
             assert files("apps").joinpath("instructions", f"{reference}.md").is_file()
         else:
             assert (root / reference).is_file()
-    assert (root / agent["config"]["file"]).is_file()
+    assert agent["config"] == {"file": "/etc/monito/agent.json"}
     assert (root / agent["system"]["file"]).is_file()

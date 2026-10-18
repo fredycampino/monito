@@ -30,7 +30,7 @@ services:
           create_host_path: false
       - type: bind
         source: ${MONITO_SETTINGS_HOST_DIR:-./data/monito/settings}/agent.json
-        target: /usr/local/lib/python3.12/site-packages/packages/monito/agent.json
+        target: /etc/monito/agent.json
         read_only: true
         bind:
           create_host_path: false

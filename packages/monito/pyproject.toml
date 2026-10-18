@@ -21,7 +21,6 @@ packages = ["src/monito"]
 
 [tool.hatch.build.targets.wheel.force-include]
 "monito.yaml" = "packages/monito/monito.yaml"
-"agent.json" = "packages/monito/agent.json"
 "system.md" = "packages/monito/system.md"
 "instructions" = "packages/monito/instructions"
 

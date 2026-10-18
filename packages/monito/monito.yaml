@@ -8,7 +8,7 @@ steps:
     next: monito
   - agent: monito
     config:
-      file: "./agent.json"
+      file: "/etc/monito/agent.json"
     system:
       file: "./system.md"
     instructions:
@@ -16,7 +16,9 @@ steps:
       - "solve-task-style"
       - "response-style"
       - "skiller-user"
-      - "./instructions/env-box.md"
+      - "./instructions/use-box.md"
+      - "./instructions/install-packages.md"
+      - "./instructions/use-internet-search.md"
       - "./instructions/use-ggets.md"
       - "./instructions/use-health.md"
       - "./instructions/use-telegram.md"
