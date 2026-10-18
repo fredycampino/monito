@@ -12,29 +12,12 @@ see [Versioned deployment](deployment.md).
 
 ## 1. Prepare
 
-1. Compose settings: copy `docker/compose.env.example` to `docker/compose.env` on first setup. Set UID/GID using `id -u` and `id -g`. For local builds, keep `IMAGE_PREFIX` empty and `RELEASE_VERSION=dev`; do not build locally with published release tags.
-2. Container environment: review `docker/monito.env` and `docker/ggets.env`.
-3. Persistent storage: Monito home holds personal state, workspace holds working files, and settings holds its read-only agent profile and runtime configuration. Ggets keeps its own secrets and state. Create directories as your host user:
-   ```bash
-   mkdir -p data/monito/{settings,home,workspace} data/ggets/{secrets,state}
-   ```
-4. Application configuration: on first setup, copy the examples; do not overwrite existing configuration:
-   ```bash
-   cp docker/monito.agent.example.json data/monito/settings/agent.json
-   cp docker/monito.config.example.json data/monito/settings/config.json
-   cp docker/ggets.config.example.json data/ggets/config.json
-   ```
-5. Restrict Ggets private directories and provision Telegram secrets separately:
-   ```bash
-   chmod 700 data/ggets/secrets data/ggets/state
-   # After creating the secret files, restrict each file:
-   chmod 600 data/ggets/secrets/telegram_bot_token data/ggets/secrets/telegram_webhook_secret
-   ```
-   Run the file-permission command only after both files exist. Do not store
-   secret values in shell history or tracked configuration. The configured
-   container UID/GID must own or otherwise have the required access.
-
-   Review these files. They remain outside Git and images. Monito mounts fail if their host paths are missing instead of creating root-owned directories.
+1. Compose settings: `docker/compose.env` must contain the deployment settings described in `docker/compose.env.example`, including the host UID/GID. Local builds use an empty `IMAGE_PREFIX` and `RELEASE_VERSION=dev`, not published release tags.
+2. Container environment: `docker/monito.env` and `docker/ggets.env` must match the deployment.
+3. Data layout: `data/` must contain the structure provided by `data-examples/`, including configuration, home, workspace, secrets and state directories. Existing settings, credentials and state must be preserved.
+4. Application configuration: `data/monito/settings/agent.json`, `data/monito/settings/config.json` and `data/ggets/config.json` must match the deployment, with listen addresses aligned with Compose. Configuration generation is not implemented yet.
+5. Credentials: the example placeholders must be replaced with valid credentials in `data/monito/home/.skiller/secrets/` and `data/ggets/secrets/`. Real credentials must remain outside Git, images and shell history.
+6. Access: the configured container UID/GID must have the required access to configuration and persistent data. Ggets secrets and state directories require mode `0700`; secret files require `0600`. Monito's mounted configuration files must exist before startup; missing paths cause startup to fail rather than creating root-owned directories.
 
 ## 2. Build images
 
@@ -167,7 +150,7 @@ no image rebuild is needed.
 | `MONITO_HOME_HOST_DIR` | `./data/monito/home` | `/data/home` (writable) |
 | `MONITO_WORKSPACE_HOST_DIR` | `./data/monito/workspace` | `/data/workspace` (writable) |
 | `MONITO_CONFIG_HOST_FILE` | `./data/monito/settings/config.json` | `/etc/monito/config.json` (read-only) |
-| `MONITO_SETTINGS_HOST_DIR` | `./data/monito/settings` | Only `agent.json`, mounted read-only over the installed flow profile |
+| `MONITO_SETTINGS_HOST_DIR` | `./data/monito/settings` | Only `agent.json`, mounted read-only at `/etc/monito/agent.json` |
 
 `AGENT_RUNTIME_CONFIG_FILE=/etc/monito/config.json` selects the mounted runtime JSON.
 Its `flow_paths` points to `/usr/local/lib/python3.12/site-packages/packages`,
@@ -178,7 +161,8 @@ match `MONITO_INTERNAL_IP` and `webhooks.port` to the Skiller listener port
 (default `8001`), so Ggets can reach it over the internal network. Restart the
 Skiller server after changing its listening address.
 
-The profile destination is `/usr/local/lib/python3.12/site-packages/packages/monito/agent.json`.
+The profile destination is `/etc/monito/agent.json`, referenced directly by the
+flow. The wheel does not include an agent profile.
 Mounted configuration changes do not require rebuilding images. Start a new agent session to load profile changes; recreate containers when changing mount paths or environment variables. Close STUI sessions before recreating Monito.
 
 ## Network separation

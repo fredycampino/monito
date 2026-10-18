@@ -79,7 +79,7 @@ Host paths below are defaults, configurable in `docker/compose.env`:
 | --- | --- | --- | --- |
 | Monito | `data/monito/home` | `/data/home` | Read/write |
 | Monito | `data/monito/workspace` | `/data/workspace` | Read/write |
-| Monito | `data/monito/settings/agent.json` | `/usr/local/lib/python3.12/site-packages/packages/monito/agent.json` | Read-only |
+| Monito | `data/monito/settings/agent.json` | `/etc/monito/agent.json` | Read-only |
 | Monito | `data/monito/settings/config.json` | `/etc/monito/config.json` | Read-only |
 | Ggets | `data/ggets/config.json` | `/etc/ggets/config.json` | Read-only |
 | Ggets | `data/ggets/secrets` | `/run/secrets` | Read-only |
@@ -94,7 +94,8 @@ Host paths below are defaults, configurable in `docker/compose.env`:
   `GGETS_CONFIG_FILE` selects `/etc/ggets/config.json` inside Ggets.
 - Ggets JSON has a `server` section and module-specific sections. Each module
   receives its own configuration. Secrets are referenced by file path.
-- JSON examples live in `docker/`; prepare actual host files before startup.
+- The `data-examples/` tree mirrors `data/` with final configuration filenames and
+  empty persistent directories; copy and complete it before first startup.
   Startup must not overwrite existing settings or secrets.
 - Compose interpolation uses `--env-file docker/compose.env`. Container variables
   come from `docker/monito.env` and the file selected by `GGETS_ENV_HOST_FILE`

@@ -32,7 +32,7 @@ def test_short_references_resolve_from_mirror():
 
 
 def test_runtime_example_uses_mirror_root():
-    config = json.loads((ROOT / "docker/monito.config.example.json").read_text())
+    config = json.loads((ROOT / "data-examples/monito/settings/config.json").read_text())
     assert config["flow_paths"] == [
         "/usr/local/lib/python3.12/site-packages/packages"
     ]
@@ -47,3 +47,11 @@ def test_telegram_instruction_is_loaded():
     reference = "./instructions/use-telegram.md"
     assert reference in agent["instructions"]
     assert (root / reference).is_file()
+
+
+def test_webhook_delivery_uses_workspace_cwd():
+    import yaml
+
+    flow = yaml.safe_load((ROOT / "packages/webhook/webhook.yaml").read_text())
+    delivery = next(step for step in flow["steps"] if step.get("shell") == "deliver_event")
+    assert delivery["cwd"] == "/data/workspace"
