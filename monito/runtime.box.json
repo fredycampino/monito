@@ -1,0 +1,6 @@
+{
+  "flow_paths": [
+    "/opt/monito/monito",
+    "/opt/monito/flows/telegram"
+  ]
+}

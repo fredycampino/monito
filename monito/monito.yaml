@@ -16,10 +16,11 @@ steps:
 
   - agent: monito
     config:
-      file: "$MONITO_AGENT_CONFIG_FILE"
+      file: "./agent.dev.json"
     system:
       file: "./system.md"
     instructions:
+      - "./env-execution.md"
       - "create-flows"
       - "solve-task-style"
       - "response-style"

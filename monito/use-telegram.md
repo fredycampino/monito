@@ -1,52 +1,130 @@
 # Use Telegram
 
+## Start Skiller Server
+
+Run `skiller server start` to start the local server and `skiller server status`
+to check its state. In Box, run these commands inside the container.
+
+Telegram requires a public HTTPS endpoint, for example
+`https://<your-domain>/webhooks/telegram/inbox`.
+Publishing that endpoint is deployment infrastructure, not Monito's responsibility.
+
+## Start Telegram Receiver
+
+Run `skiller run @telegram` to start the receiving flow. It waits for messages
+on `telegram:inbox` and processes them when they arrive.
+
 ## Start Telegram Bot
 
-Security: never print, log, or reveal `SK_TELEGRAM_BOT_TOKEN` or `SK_TELEGRAM_WEBHOOK_SECRET`.
+Run `sk-telegram start` to register `telegram:inbox`, save its authentication
+secret in Skiller, and configure the Telegram webhook. The command takes no
+arguments and uses the configured credentials and public endpoint.
 
-When `sk-telegram` is unavailable on `PATH` in this repository, run it through the workspace environment instead: `uv run sk-telegram <command>`. Do not create or use a tool-local virtual environment.
+It does not launch the receiving flow.
 
-1. Run `sk-telegram status` (or `uv run sk-telegram status` when the executable is not on `PATH`).
-2. If the root `status` is `ok`, Telegram is already running. No action is required.
-3. If the root `status` is `error`, resolve each failing section independently:
-   - **`bot: fail`**
-     - Cause: `SK_TELEGRAM_BOT_TOKEN` is missing or invalid.
-     - Action: ask the user to configure a valid token. Never request or display its value.
-   - **`telegram: fail`**
-     - Cause: Telegram has no webhook or it points to the wrong endpoint.
-     - Action: run `sk-telegram start`.
-   - **`skiller: fail`**
-     - Cause: the Skiller executable is unavailable, `telegram:inbox` is incorrectly configured, or no run is waiting for it.
-     - Action:
-       - Correct `SKILLER_BIN` if Skiller is unavailable.
-       - Run `sk-telegram start` if the webhook is missing or invalid.
-       - Start the Telegram flow if no run is waiting for `telegram:inbox`.
-   - **`skiller_server.local_url` failed**
-     - Cause: the local Skiller server is stopped or unreachable.
-     - Action: ask the user for explicit approval before running `skiller server start`.
-   - **`skiller_server.public_url` failed**
-     - Cause: there is no public Internet route to the local Skiller server, or the tunnel is stopped or misconfigured.
-     - Action: ask the user to start or fix the public tunnel or network route. Do not configure or start it without approval.
-4. Run `sk-telegram status` again.
-5. Present a short, user-friendly summary:
-   - Bot identity.
-   - Telegram webhook.
-   - Waiting run.
-   - Local server.
-   - Public access.
-   - Overall result.
+The response is one JSON object:
+
+```json
+{
+  "status": "ok",
+  "skiller": {"status": "ok", "webhook": "telegram:inbox"},
+  "telegram": {
+    "status": "ok",
+    "webhook": "https://skiller.example/webhooks/telegram/inbox"
+  }
+}
+```
+
+Exit code `0` means both configurations succeeded; `1` means failure. Configuration
+failures return `status: "error"` and details in the corresponding section;
+missing required settings can terminate with a message instead of JSON.
+
+## Status Telegram Bot
+
+Run `sk-telegram status` without arguments to check the bot identity, the Telegram
+webhook, the Skiller registration and waiting run, and local and public server
+access. It reports the current state without changing configuration.
+
+The response is one JSON object:
+
+```json
+{
+  "status": "ok",
+  "bot": {"status": "ok", "id": 123456789, "username": "example_bot"},
+  "telegram": {
+    "status": "ok",
+    "webhook": "https://skiller.example/webhooks/telegram/inbox"
+  },
+  "skiller": {
+    "status": "ok",
+    "version": "0.1.0-beta.43",
+    "path": "/usr/local/bin/skiller",
+    "webhook": "telegram:inbox",
+    "run_id": "example-run-id"
+  },
+  "skiller_server": {
+    "status": "ok",
+    "local_url": "http://127.0.0.1:8001/health",
+    "public_url": "https://skiller.example/health"
+  }
+}
+```
+
+Exit code `0` and root `status: "ok"` mean every section passed. Otherwise,
+the exit code is `1`, the root status is `error`, and failing sections report
+`status: "fail"`. Missing values appear as `null`; URL failures include error
+details. A configured Telegram webhook alone does not mean the bot is ready:
+Skiller also needs a run waiting for `telegram:inbox` and reachable server endpoints.
+
+### Example: server access failure
+
+```json
+{
+  "skiller_server": {
+    "status": "fail",
+    "local_url": "http://127.0.0.1:8001/health: Connection refused",
+    "public_url": "https://skiller.campino.me/health: HTTP 530"
+  }
+}
+```
+
+- `Connection refused`: the local server is not started.
+- HTTP `530`: the public tunnel/domain is not working.
 
 ## Stop Telegram Bot
 
-1. Run `sk-telegram status` and report the current state.
-2. Run `sk-telegram stop`.
-3. Do not delete the Telegram run. It must remain available to preserve its history and memory.
-4. Do not stop the Skiller server. Other applications may depend on it.
-5. If the user also wants to stop the Skiller server, explain the possible impact and request explicit confirmation before running `skiller server stop`.
-6. Leave the public tunnel running and inform the user that it remains open.
-7. Run `sk-telegram status` again.
-8. Present a short, user-friendly summary:
-   - Telegram webhook stopped.
-   - Run preserved.
-   - Skiller server still running.
-   - Public tunnel still open.
+Run `sk-telegram stop` without arguments to remove the webhook from Telegram and
+unregister it in Skiller. It does not delete runs or stop the server or tunnel.
+
+Example: `sk-telegram stop`.
+
+The response is a JSON object with `status`, `skiller`, and `telegram`.
+Exit code `0` means both removals succeeded; `1` means failure.
+
+## Send Message
+
+Run `sk-telegram send <chat_id> "<text>"` to send a text message to a chat.
+For example: `sk-telegram send 123456789 "Hello"`.
+
+It produces no output on success and exits with code `0`. Errors produce a
+non-zero exit code. Sending does not require an incoming webhook.
+
+## Poll Messages
+
+Run `sk-telegram poll --once` to wait for one text message and print it as JSON.
+Without `--once`, it continues receiving messages. `--timeout <seconds>` sets
+the long-poll timeout; `--state-file <path>` selects the file holding the offset.
+
+Polling is an alternative to webhooks: Telegram does not allow polling while a
+webhook is configured.
+
+```json
+{
+  "update_id": 123,
+  "message": {
+    "chat": {"id": 123456789},
+    "from": {"username": "example_user"},
+    "text": "Hello"
+  }
+}
+```

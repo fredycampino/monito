@@ -1,0 +1,19 @@
+{
+  "tools": {
+    "shell": {
+      "allowed_paths": [
+        "/data/workspace"
+      ],
+      "allowlist_enabled": false,
+      "allowed_commands": []
+    },
+    "files": {
+      "read": [
+        "/data/workspace"
+      ],
+      "write": [
+        "/data/workspace"
+      ]
+    }
+  }
+}

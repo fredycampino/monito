@@ -1,0 +1,27 @@
+name: monito
+description: "Minimal developer agent"
+start: ask_user
+inputs: {}
+steps:
+  - wait_input: ask_user
+    prompt: "What shall we work on?"
+    next: monito
+  - agent: monito
+    config:
+      file: "./agent.json"
+    system:
+      file: "./system.md"
+    instructions:
+      - "create-flows"
+      - "solve-task-style"
+      - "response-style"
+      - "skiller-user"
+      - "./instructions/env-box.md"
+      - "./instructions/use-ggets.md"
+      - "./instructions/use-health.md"
+      - "./instructions/use-telegram.md"
+    task: '{{output_value("ask_user").payload.text}}'
+    tools:
+      - files
+      - shell
+    next: ask_user

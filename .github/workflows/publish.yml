@@ -128,16 +128,24 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Build and publish Monito Box
+      - name: Build and publish Monito image
         env:
           IMAGE: ghcr.io/${{ github.repository_owner }}/monito-box
           VERSION: ${{ steps.identity.outputs.version }}
           REVISION: ${{ steps.release.outputs.merge_sha }}
         run: |
-          docker build \
+          docker build -f docker/Dockerfile.monito \
             --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
             --label "org.opencontainers.image.revision=$REVISION" \
             --label "org.opencontainers.image.version=$VERSION" \
             --tag "$IMAGE:$VERSION" \
             .
+          docker push "$IMAGE:$VERSION"
+
+      - name: Build and publish Ggets image
+        env:
+          IMAGE: ghcr.io/${{ github.repository_owner }}/ggets
+          VERSION: ${{ steps.identity.outputs.version }}
+        run: |
+          docker build -f docker/Dockerfile.ggets --tag "$IMAGE:$VERSION" .
           docker push "$IMAGE:$VERSION"

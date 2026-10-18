@@ -1,23 +1,86 @@
 services:
-  box:
+  monito:
+    image: ${IMAGE_PREFIX:-}monito-box:${RELEASE_VERSION:-dev}
+    init: true
+    restart: unless-stopped
     build:
       context: .
-    image: monito-box:dev
-    user: "${HOST_UID}:${HOST_GID}"
+      dockerfile: docker/Dockerfile.monito
+    mem_limit: ${MONITO_MEMORY_LIMIT:-2g}
+    memswap_limit: ${MONITO_MEMORY_LIMIT:-2g}
+    cpus: "${MONITO_CPU_LIMIT:-4}"
+    pids_limit: ${MONITO_PIDS_LIMIT:-256}
+    user: "${HOST_UID:-10001}:${HOST_GID:-10001}"
+    env_file: [./docker/monito.env]
     environment:
-      HOME: /data/home
-      AGENT_DB_PATH: /data/skiller/agent.db
-      MONITO_AGENT_CONFIG_FILE: /opt/monito/monito/agent.box.json
-      # Preserve the host terminal capabilities for Textual/STUI.
       TERM: "${TERM:-xterm-256color}"
       COLORTERM: "${COLORTERM:-truecolor}"
     volumes:
-      - ./data:/data
+      - type: bind
+        source: ${MONITO_HOME_HOST_DIR:-./data/monito/home}
+        target: /data/home
+        read_only: false
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${MONITO_WORKSPACE_HOST_DIR:-./data/monito/workspace}
+        target: /data/workspace
+        read_only: false
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${MONITO_SETTINGS_HOST_DIR:-./data/monito/settings}/agent.json
+        target: /usr/local/lib/python3.12/site-packages/packages/monito/agent.json
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${MONITO_CONFIG_HOST_FILE:-./data/monito/settings/config.json}
+        target: /etc/monito/config.json
+        read_only: true
+        bind:
+          create_host_path: false
     read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
     tmpfs:
-      - /tmp
-    entrypoint: ["/bin/sh", "-c"]
-    command: ["mkdir -p /data/home /data/skiller /data/workspace && exec sleep infinity"]
-    init: true
+      - /tmp:size=${MONITO_TMPFS_SIZE:-128m}
+    networks:
+      internal:
+        ipv4_address: ${MONITO_INTERNAL_IP:-172.28.0.3}
     stdin_open: true
     tty: true
+  ggets:
+    image: ${IMAGE_PREFIX:-}ggets:${RELEASE_VERSION:-dev}
+    user: "${HOST_UID:-10001}:${HOST_GID:-10001}"
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.ggets
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    tmpfs: [/tmp]
+    env_file: ["${GGETS_ENV_HOST_FILE:-./docker/ggets.env}"]
+    networks:
+      internal:
+        ipv4_address: ${GGETS_INTERNAL_IP:-172.28.0.2}
+      ingress:
+        ipv4_address: ${GGETS_TELEGRAM_IP:-172.29.0.2}
+        gw_priority: 1
+    ports:
+      - "${GGETS_TELEGRAM_BIND_IP:-127.0.0.1}:${GGETS_TELEGRAM_HOST_PORT:-8001}:${GGETS_TELEGRAM_PORT:-8001}"
+    volumes:
+      - ${GGETS_CONFIG_HOST_FILE:-./data/ggets/config.json}:/etc/ggets/config.json:ro
+      - ${GGETS_SECRETS_HOST_DIR:-./data/ggets/secrets}:/run/secrets:ro
+      - ${GGETS_STATE_HOST_DIR:-./data/ggets/state}:/data/telegram
+
+networks:
+  internal:
+    ipam:
+      config:
+        - subnet: ${INTERNAL_SUBNET:-172.28.0.0/24}
+  ingress:
+    ipam:
+      config:
+        - subnet: ${INGRESS_SUBNET:-172.29.0.0/24}

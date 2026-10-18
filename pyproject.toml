@@ -1,9 +1,15 @@
 [tool.uv.workspace]
-members = ["tools/*"]
-exclude = ["tools/_placeholder"]
+members = ["packages/*"]
+
+[dependency-groups]
+dev = ["pytest>=8", "ruff>=0.11", "httpx>=0.28", "build>=1.2"]
 
 [tool.ruff]
 line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
+
+[tool.pytest.ini_options]
+testpaths = ["packages"]
+pythonpath = ["packages/tools/src", "packages/monito/src"]

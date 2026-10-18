@@ -11,3 +11,6 @@ compose.env
 .env.*
 docs/todo
 legacy
+
+config.ggets.dev.json
+.venv-*
