@@ -32,8 +32,8 @@ jobs:
       - name: Install verification dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install pytest ruff
-          python -m pip install -e tools/telegram -e tools/cloudflared
+          python -m pip install pytest ruff httpx build
+          python -m pip install -e packages/tools -e packages/monito
 
       - name: Validate branch shape
         env:
@@ -76,14 +76,23 @@ jobs:
 
       - name: Run tests
         run: |
-          python -m pytest tools/telegram/tests
-          python -m pytest tools/cloudflared/tests
+          python -m pytest
 
       - name: Validate configuration
         run: |
-          python -m json.tool monito/agent.json > /dev/null
+          python -m json.tool monito/agent.dev.json > /dev/null
           python -m json.tool monito/agent.box.json > /dev/null
           HOST_UID=1000 HOST_GID=1000 docker compose config > /dev/null
 
-      - name: Build Monito Box
-        run: docker build --tag monito-box:ci .
+      - name: Build Monito image
+        run: docker build -f docker/Dockerfile.monito --tag monito-box:ci .
+
+      - name: Verify Ggets image
+        run: |
+          docker build -f docker/Dockerfile.ggets -t ggets:ci .
+          docker run --rm --network none --read-only ggets:ci --help
+
+      - name: Build distributions
+        run: |
+          python -m build packages/tools
+          python -m build packages/monito

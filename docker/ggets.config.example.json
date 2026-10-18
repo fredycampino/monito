@@ -1,0 +1,16 @@
+{
+  "server": {
+    "host": "172.28.0.2",
+    "port": 8000
+  },
+  "health": {
+    "label": "ggets"
+  },
+  "telegram": {
+    "bot_father_token_file": "/run/secrets/telegram_bot_token",
+    "webhook_secret_file": "/run/secrets/telegram_webhook_secret",
+    "state_file": "/data/telegram/state.json",
+    "receiver_host": "172.29.0.2",
+    "receiver_port": 8001
+  }
+}

@@ -11,3 +11,5 @@ data/
 !.env.example
 docs/todo
 legacy/
+.venv-*/
+config.ggets.dev.json

@@ -1,0 +1,10 @@
+FROM python:3.12-slim
+RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates procps \
+    && rm -rf /var/lib/apt/lists/*
+ENV HOME=/data/home PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+COPY packages/monito /build/monito
+COPY packages/webhook /build/webhook
+RUN pip install --no-cache-dir /build/monito && rm -rf /build
+WORKDIR /data/workspace
+USER 10001:10001
+CMD ["sleep", "infinity"]

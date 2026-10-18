@@ -1,0 +1,9 @@
+{
+  "flow_paths": [
+    "/usr/local/lib/python3.12/site-packages/packages"
+  ],
+  "webhooks": {
+    "host": "172.28.0.3",
+    "port": 8001
+  }
+}

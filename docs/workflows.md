@@ -43,7 +43,7 @@ A workflow must finish before its output is used by the next one. Publishing an 
 **Output:** an annotated Git tag `vX.Y.Z` (or a SemVer prerelease such as `v0.1.0-beta.1`).
 
 1. `[admin]` selects the next semantic version.
-2. `[dev]` creates `release/X.Y.Z` from `main` (or a SemVer prerelease such as `release/0.1.0-beta.1`), moves the accumulated `Unreleased` entries to a dated version section in `CHANGELOG.md`, creates a new empty `Unreleased` section, and updates both `VERSION` and `deploy/compose.env.example` (`MONITO_VERSION`).
+2. `[dev]` creates `release/X.Y.Z` from `main` (or a SemVer prerelease such as `release/0.1.0-beta.1`), moves the accumulated `Unreleased` entries to a dated version section in `CHANGELOG.md`, creates a new empty `Unreleased` section, and updates `VERSION`, `packages/monito/VERSION`, and `packages/tools/VERSION`. Deployment version selection is an administrator decision, not release metadata.
 3. `[dev]` squashes the release branch so the pull request contains exactly one commit.
 4. `[dev]` opens a pull request to `main`.
 5. `[ci]` rejects release pull requests with more than one commit; otherwise it verifies version consistency, changelog structure, tests, flows, and the container build.
@@ -61,19 +61,14 @@ The tag identifies the exact source used for publication. No deployment occurs i
 **Output:** an immutable Git tag and artifacts available from registries.
 
 1. `[ci]` checks that the squash-merge tree is identical to the release commit tree validated by CI.
-2. `[ci]` verifies the release branch, `VERSION`, deploy version, and Git tag. It creates the annotated tag `vX.Y.Z` on the merge commit before artifact publication. A retry accepts an existing tag only when it points to the same merge commit; it fails if it points elsewhere.
-3. `[ci]` builds and publishes the OCI image:
-   ```text
-   ghcr.io/fredycampino/monito-box:X.Y.Z
-   ```
-4. `[ci]` may also update the mutable convenience tag:
-   ```text
-   ghcr.io/fredycampino/monito-box:latest
-   ```
-6. `[ci]` may publish `sk-telegram` and `sk-cloudflared` to PyPI when those standalone CLIs are part of the release policy.
-7. `[ci]` records artifact digests and publication results in the release metadata.
+2. `[ci]` verifies the release branch, `VERSION`, and Git tag. It creates the annotated tag `vX.Y.Z` on the merge commit before publication. A retry accepts an existing tag only when it points to the same commit.
+3. `[ci]` builds and publishes both images from that commit, with the same version:
+   - `ghcr.io/fredycampino/monito-box:X.Y.Z`
+   - `ghcr.io/fredycampino/ggets:X.Y.Z`
+4. Publication is complete only when both images are available. Image pushes are not atomic: if one fails, retry the release publication before deployment. A Git tag alone does not prove both images exist.
+5. Python distributions are `monito` (`packages/monito`) and `ggets` (`packages/tools`). CI builds wheels and source distributions to validate packaging; the current publication workflow does not upload them to PyPI or attach them to a GitHub release. They are installed in the container images. Standalone Python publication requires a separate approved policy and credentials; the legacy `sk-telegram` and `sk-cloudflared` packages are no longer release artifacts.
 
-Production deployment must use `:X.Y.Z` or, preferably, an OCI digest. It must not rely on `:latest`.
+Production deployment must use the explicit release tag for both images, never `:latest` or `:dev`. No automatic deployment occurs after publication.
 
 ## Deploy
 
@@ -83,13 +78,13 @@ Production deployment must use `:X.Y.Z` or, preferably, an OCI digest. It must n
 
 **Output:** the selected version running and verified in that environment.
 
-1. `[admin]` selects the release artifact recorded by `MONITO_VERSION` in the merged `deploy/compose.env.example`.
-2. `[admin]` copies that release's `compose.env` to the environment configuration, preserving host-specific UID/GID and without changing persistent `data/` or secrets.
-3. `[admin]` pulls the image and recreates the service.
-4. `[admin]` verifies container status, STUI access, `@monito`, persistent state, and enabled integrations.
-5. `[ci]` may run post-deploy checks when a controlled deployment runner is available.
+1. `[admin]` selects a successfully published release and confirms both versioned images exist.
+2. `[admin]` prepares the distribution files and environment-specific configuration as described in [Versioned deployment](deployment.md). Set `IMAGE_PREFIX=ghcr.io/fredycampino/` and `RELEASE_VERSION` explicitly; preserve host paths, UID/GID, secrets and persistent data.
+3. `[admin]` pulls both images before recreating either service, without building on the server.
+4. `[admin]` verifies both containers, STUI access, `@monito`, `@webhook`, persistent state, Health and enabled integrations. Container startup does not resume listeners or start the Skiller webhook server automatically.
+5. If verification fails, `[admin]` selects the previous known-good release and pulls/recreates both services together. Preserve data; check migration compatibility before rollback. A partial pull must not trigger recreation.
 
-To roll back, `[admin]` redeploys a previously published tag or digest. Persistent data remains in place unless a version-specific migration procedure says otherwise.
+See [Versioned deployment](deployment.md) for commands. Deployment and rollback are explicit administrator actions, not CI side effects.
 
 ## Boundaries
 

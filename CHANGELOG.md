@@ -4,7 +4,18 @@ All notable changes to Monito are documented in this file.
 
 ## Unreleased
 
-- Nothing yet.
+### Added
+
+- Introduce Ggets with independent Health and Telegram modules exposed through CLI and HTTP.
+- Add a generic webhook listener that forwards labeled payloads to a subscriber run.
+- Document Telegram integration, module configuration, deployment and known lifecycle limitations.
+
+### Changed
+
+- Isolate the tools API and Telegram ingress on separate container networks with interface-specific listeners.
+- Mount Monito runtime configuration and agent settings from the host; preserve the package resource layout in the wheel.
+- Use one Compose definition for local builds and versioned deployment of the Monito/Ggets image pair.
+- Replace standalone Telegram tooling with Ggets operations while retaining feature/release approval and single-commit checks.
 
 ## 0.1.0-beta.4 - 2026-10-12
 
