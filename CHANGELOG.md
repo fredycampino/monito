@@ -4,6 +4,10 @@ All notable changes to Monito are documented in this file.
 
 ## Unreleased
 
+- Nothing yet.
+
+## 0.1.0-beta.5 - 2026-10-18
+
 ### Added
 
 - Introduce Ggets with independent Health and Telegram modules exposed through CLI and HTTP.
