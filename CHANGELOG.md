@@ -4,6 +4,10 @@ All notable changes to Monito are documented in this file.
 
 ## Unreleased
 
+- Nothing yet.
+
+## 0.1.0-beta.7 - 2026-10-20
+
 ### Fixed
 
 - Keep the webhook listener waiting after failed subscriber deliveries, with a 30-second command timeout inside the 45-second step limit and no retries.
