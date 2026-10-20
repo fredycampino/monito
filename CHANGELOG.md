@@ -4,6 +4,10 @@ All notable changes to Monito are documented in this file.
 
 ## Unreleased
 
+- Nothing yet.
+
+## 0.1.0-beta.6 - 2026-10-20
+
 ### Changed
 
 - Increase the default Monito container budget to 8 GB RAM and 8 CPUs, without extra swap.
