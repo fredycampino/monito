@@ -133,3 +133,72 @@ def test_validation_error_matches_openapi():
         assert documented["content"]["application/json"]["schema"] == {
             "$ref": "#/components/schemas/ErrorResponse"
         }
+
+
+@pytest.mark.parametrize("command", ["health", "telegram"])
+def test_cli_calls_service_without_module_lifespans(command, monkeypatch, capsys):
+    from ggets.health.module import create_module as create_health
+    from ggets.telegram.module import create_module as create_telegram
+
+    modules = {
+        "health": create_health({}, ("check",)),
+        "telegram": create_telegram({}, ("send",)),
+    }
+    for module in modules.values():
+        monkeypatch.setattr(module, "lifespan", Mock(side_effect=AssertionError("CLI lifecycle")))
+    send = Mock()
+    send.return_value.model_dump.return_value = {"status": "ok", "data": {"message_id": 1}}
+    monkeypatch.setattr(modules["telegram"].service, "send", send)
+    registry = {
+        name: (lambda config, operations, module=module: module, ())
+        for name, module in modules.items()
+    }
+    args = ["health", "check"] if command == "health" else [
+        "telegram", "send", "--json", '{"chat_id": 123, "text": "test"}'
+    ]
+
+    assert main(args, registry=registry) == 0
+    assert json.loads(capsys.readouterr().out)["status"] == "ok"
+    for module in modules.values():
+        module.lifespan.assert_not_called()
+    if command == "telegram":
+        send.assert_called_once()
+        request = send.call_args.args[0]
+        assert request.chat_id == 123
+        assert request.text == "test"
+    else:
+        send.assert_not_called()
+
+
+def test_http_application_starts_and_stops_all_module_lifespans():
+    from contextlib import contextmanager
+
+    from fastapi import APIRouter
+
+    events = []
+
+    def factory(name):
+        module = Mock()
+        module.router = APIRouter()
+
+        @contextmanager
+        def lifespan():
+            events.append((name, "start"))
+            try:
+                yield
+            finally:
+                events.append((name, "stop"))
+
+        module.lifespan.side_effect = lifespan
+        return lambda config, operations: module
+
+    manager = ToolManager({name: (factory(name), ()) for name in ("first", "second")}, {})
+    app = create_app(manager, ServerConfig())
+    assert events == []
+    with TestClient(app) as client:
+        assert events == [("first", "start"), ("second", "start")]
+        assert client.get("/openapi.json").status_code == 200
+    assert events == [
+        ("first", "start"), ("second", "start"),
+        ("second", "stop"), ("first", "stop"),
+    ]

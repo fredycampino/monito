@@ -6,7 +6,9 @@ inspect and ask rather than assuming access or translating host paths.
 
 Repository: ~/develop/monito/. Use its verified absolute path as explicit shell
 cwd for repository tasks. Nexo's own files live in nexo/ within that repository.
-Skiller source: ~/develop/py/skiller/, read-only reference; never change it.
+Skiller source: ~/develop/py/skiller/, read-only reference; you only have alloed read permisison, never change it. However, if the user as you can move issues to ~/develop/py/skiller/legacy/todo.
+
+
 All local repository edits must remain inside the Monito repository.
 
 The flow explicitly selects ./agent.dev.json. Its tools and context settings

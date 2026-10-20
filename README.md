@@ -1,32 +1,75 @@
-# Monito and Tools
+# Monito
 
-Two distributions: `packages/monito` and `packages/tools`.
-Host development uses the independent agent in `nexo/`; the legacy `monito/` development agent has been removed. Monito Box remains in `packages/monito`.
+Monito is an AI agent running in Box, a container with a persistent workspace and
+home. Ggets provides its tools and integrations. Nexo is the independent host
+agent used to develop and maintain this repository.
 
-## Development
+## Components
+
+### Monito: the Box agent
+
+`packages/monito` contains Monito's flow, system prompt and instructions.
+Box includes Skiller, Chromium and browser tools. Agent state and credentials
+remain in the persistent home, outside the image; work belongs in the workspace.
+The agent profile and Runtime configuration are mounted read-only.
+
+### Ggets: services and tools
+
+`packages/tools` provides the `ggets` CLI and FastAPI server. Registered modules
+expose the same services through both interfaces. Current modules are Health and
+Telegram. CLI operations do not start HTTP listeners; `ggets serve` manages their
+server lifecycle.
+
+### Nexo: the development agent
+
+`nexo/` contains the host development agent, independent of Monito Box. From the
+repository root, start it with `skiller ./nexo/nexo.yaml` using a host Skiller
+installation. See [Nexo](nexo/README.md) for its profile and global settings.
+
+## Repository structure
+
+- `packages/monito/`: Monito agent resources and Python distribution.
+- `packages/tools/`: Ggets services, CLI, HTTP API and tests.
+- `packages/webhook/`: listener flow that delivers incoming events to a subscriber run.
+- `nexo/`: host development flow, profile and instructions.
+- `docker/` and `compose.yaml`: container builds and deployment configuration.
+- `data-examples/`: configuration and persistent-data layout examples, not live data.
+- `docs/`: architecture, development rules and operating procedures.
+
+## Local development
+
+### Installation
+
+Use Python 3.12 and uv. From the repository root:
 
 ```bash
 uv sync --all-packages
-uv run pytest
-uv run ruff check .
+```
+
+Ggets can run directly on the host:
+
+```bash
 uv run ggets health check --json '{}'
 uv run ggets health info --json '{}'
 uv run ggets serve
+```
+
+### Tests and validation
+
+```bash
+uv run pytest
+uv run ruff check .
 uv build --all-packages
 ```
 
-The bundled `health` module exposes `POST /health/check` and `POST /health/info`
-with JSON `{}`. `info` reports Python version, operating system and architecture;
-it does not expose paths or environment variables.
-OpenAPI: `/openapi.json`; Swagger UI: `/docs`.
-The same module and registry are used locally and in production, including Docker.
-No placeholder extras or compatibility commands are provided.
+See [workflows](docs/workflows.md) and [CI](.github/workflows/ci.yml) for the
+additional branch, changelog, configuration and container checks required for PRs.
 
 ## Configuration
 
-`GGETS_CONFIG_FILE` selects one JSON file, defaulting to
+For Ggets, `GGETS_CONFIG_FILE` selects one JSON file, defaulting to
 `~/.monito/ggets/config.json`. A missing default uses defaults; an explicit
-missing path fails. Example:
+missing path fails. A minimal host configuration is:
 
 ```json
 {
@@ -35,29 +78,115 @@ missing path fails. Example:
 }
 ```
 
-Optional `server.token_file` enables Bearer authentication, including docs.
-Do not store tokens in configuration or source control.
+Optional `server.token_file` enables Bearer authentication, including API docs.
+Store credentials outside source control and images, not as tokens in configuration.
 
-## Docker
+Box uses a separate agent profile at `/etc/monito/agent.json` and Runtime
+configuration at `/etc/monito/config.json`. Its persistent HOME is `/data/home`
+and workspace is `/data/workspace`. Provider settings and secrets belong in the
+persistent home. Nexo configuration is not used by Box.
 
-`docker compose build` creates `monito-box:dev` and `ggets:dev` using the
-Dockerfiles in `docker/`. Start Ggets with `docker compose up -d ggets`.
-Its internal URL is `http://ggets:8000`; no host ports are published.
+Use [data examples](data-examples/) and the [local deployment guide](docs/local-deployment.md)
+for required files, host paths, permissions and network settings. Configuration
+generation is not implemented; preserve existing settings, credentials and state.
 
-For Monito, prepare writable `data/monito/home` and `data/monito/workspace` owned by its
-container user (UID/GID 10001 by default, overridden by `HOST_UID`/`HOST_GID`).
-`docker compose run --rm monito` opens the current interactive agent.
-LLM settings belong in its persistent home, not in the image.
+## Running with Docker
 
-See [Docker specification](docs/docker-spec.md) for layout, security and the
-production target. Service-mode Monito and its Ggets client remain pending.
+### Local deployment
 
-See [architecture](docs/architecture.md), [module rules](docs/tool-module-rules.md)
-and [manager rules](docs/tool-manager-rules.md).
+Docker Engine and Docker Compose are required; the network configuration requires
+Compose 2.33.1 or later. First complete the preparation steps in
+[local deployment](docs/local-deployment.md), including environment files, required
+configuration files and writable data directories owned by the configured UID/GID.
+From the repository root, select the Compose environment file once for the current
+shell, then build and start the local images:
+
+```bash
+export COMPOSE_ENV_FILES=docker/compose.env
+docker compose build
+docker compose up -d
+docker compose ps
+```
+
+The following Docker commands assume that variable remains set in the current shell.
+
+Local builds use `monito-box:dev` and `ggets:dev`. Published deployments use an
+explicit version for both images; see [versioned deployment](docs/deployment.md).
+Do not build or recreate an existing deployment without reviewing its configuration
+and preserving its data and sessions.
+
+### Open a Monito session
+
+In the running Box container:
+
+```bash
+docker compose exec monito skiller @monito
+```
+
+For a shell, use `docker compose exec monito sh`.
+Opening `@monito` creates a new run; it does not resume an existing session.
+
+### Service health and status
+
+```bash
+docker compose logs --tail=50
+docker compose exec ggets ggets health check
+docker compose exec monito skiller server status
+```
+
+The CLI Health check returns a fixed `status: "ok"` and the configured label;
+it does not probe the HTTP server, Telegram or Skiller. The Health HTTP endpoints
+are `POST /health/check` and `POST /health/info`, both accepting JSON `{}`.
+`info` reports Python version, operating system and architecture, not paths or
+environment variables. OpenAPI is at `/openapi.json` and Swagger UI at `/docs`.
+
+Inside the Compose network, the tools API is `http://ggets:8000` and is not
+published to the host. Only the Telegram receiver is published, by default at
+`127.0.0.1:8001`. The Box entrypoint starts the Skiller HTTP server, but does not
+create or resume subscriber runs or webhook listeners. See the local deployment
+guide for independent HTTP reachability checks.
+
+## Telegram integration
+
+Incoming messages follow this route:
+
+```text
+Telegram → public HTTPS tunnel → Ggets receiver → Skiller webhook server
+         → @webhook listener → Monito subscriber run
+```
+
+Monito sends replies through Ggets; a local final assistant message is not itself
+a Telegram delivery. Setup requires Telegram credentials, a public HTTPS URL,
+reachable private services and a waiting subscriber/listener in the same Skiller
+database. Do not enable the integration merely as a health check.
+
+Follow [Monito's Telegram instructions](packages/monito/instructions/use-telegram.md)
+and the networking instructions in [local deployment](docs/local-deployment.md).
+A `WAITING` run does not prove that the HTTP server or actual message delivery works.
 
 ## Release and deployment
 
-See [workflows](docs/workflows.md) for Feature → Release → Publish → Deploy,
-and [versioned deployment](docs/deployment.md) for deploying and rolling back the
-published Monito/Ggets image pair. Python distributions are currently validated
-in CI, not published to PyPI.
+The delivery sequence is **Feature → Release → Publish → Deploy**.
+Feature PRs target `main`, contain exactly one commit on the current `origin/main`
+and add a meaningful `Unreleased` changelog entry. Release and deployment require
+separate approval; publishing images does not update a running environment.
+
+Both published images use the same explicit version:
+- `ghcr.io/fredycampino/monito-box:<version>`
+- `ghcr.io/fredycampino/ggets:<version>`
+
+See [workflows](docs/workflows.md) for release and publication, and
+[versioned deployment](docs/deployment.md) for upgrades and rollback. Python
+wheels and source distributions are validated in CI, not published to PyPI.
+
+## Reference documentation
+
+- [Architecture](docs/architecture.md)
+- [Tool module rules](docs/tool-module-rules.md) and [manager rules](docs/tool-manager-rules.md)
+- [Docker specification](docs/docker-spec.md)
+- [Local deployment](docs/local-deployment.md)
+- [Versioned deployment](docs/deployment.md)
+- [Development and delivery workflows](docs/workflows.md)
+- [Changelog](CHANGELOG.md)
+- [Nexo development agent](nexo/README.md)
+- [Monito Telegram instructions](packages/monito/instructions/use-telegram.md)

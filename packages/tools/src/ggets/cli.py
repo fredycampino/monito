@@ -29,8 +29,7 @@ def main(argv=None, *, registry=None):
             server = ServerConfig.load(config.get("server", {}))
             uvicorn.run(create_app(manager, server), host=server.host, port=server.port)
         else:
-            with manager.lifespan():
-                print(json.dumps(args.execute(args)))
+            print(json.dumps(args.execute(args)))
         return 0
     except ValueError as exc:
         print(json.dumps({"error": {"code": "invalid_input", "message": str(exc)}}))

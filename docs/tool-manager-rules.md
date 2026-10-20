@@ -13,7 +13,8 @@ The manager directs execution; modules do not need to know it.
 The registry determines which modules and operations are exposed through CLI and HTTP at build time, not through dynamic runtime discovery.
 
 Each registry entry declares a factory and a tuple of enabled operations.
-Each registered factory receives the module configuration object and that tuple, returning an instance with `register_cli(parser)`, `router`, and `lifespan()`. The latter is a synchronous context manager that the manager enters and exits.
+Each registered factory receives the module configuration object and that tuple, returning an instance with `register_cli(parser)`, `router`, and `lifespan()`. The latter is a synchronous context manager that the manager enters and exits
+for the HTTP application lifetime, not for individual CLI operations.
 
 ### 2. Exposure, not business logic
 

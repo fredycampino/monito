@@ -24,11 +24,12 @@ steps:
   - shell: deliver_event
     command: |
       notification=$(printf '%s\n%s' "$NOTIFICATION_LABELS" "$WEBHOOK_EVENT")
-      skiller input receive "$SUBSCRIBER_RUN_ID" --text="$notification"
+      timeout --kill-after=5s 30s skiller input receive "$SUBSCRIBER_RUN_ID" --text="$notification"
     cwd: "/data/workspace"
     env:
       SUBSCRIBER_RUN_ID: "{{inputs.run_id}}"
       NOTIFICATION_LABELS: "{{inputs.labels}}"
       WEBHOOK_EVENT: '{{output_value("wait_message").payload}}'
-    timeout: 30
+    timeout: 45
+    check: false
     next: wait_message

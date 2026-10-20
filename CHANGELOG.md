@@ -4,7 +4,11 @@ All notable changes to Monito are documented in this file.
 
 ## Unreleased
 
-- Nothing yet.
+### Fixed
+
+- Keep the webhook listener waiting after failed subscriber deliveries, with a 30-second command timeout inside the 45-second step limit and no retries.
+
+- Execute Ggets CLI operations without starting module listeners, avoiding Telegram receiver port conflicts while the HTTP server is running.
 
 ## 0.1.0-beta.6 - 2026-10-20
 
