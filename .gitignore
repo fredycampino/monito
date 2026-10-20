@@ -15,3 +15,6 @@ legacy/
 config.ggets.dev.json
 
 /_data/
+
+# Nexo local investigation artifacts
+nexo/.tmp/

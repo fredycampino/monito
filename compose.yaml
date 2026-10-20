@@ -6,9 +6,9 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.monito
-    mem_limit: ${MONITO_MEMORY_LIMIT:-2g}
-    memswap_limit: ${MONITO_MEMORY_LIMIT:-2g}
-    cpus: "${MONITO_CPU_LIMIT:-4}"
+    mem_limit: ${MONITO_MEMORY_LIMIT:-8g}
+    memswap_limit: ${MONITO_MEMORY_LIMIT:-8g}
+    cpus: "${MONITO_CPU_LIMIT:-8}"
     pids_limit: ${MONITO_PIDS_LIMIT:-256}
     user: "${HOST_UID:-10001}:${HOST_GID:-10001}"
     env_file: [./docker/monito.env]
@@ -42,7 +42,10 @@ services:
           create_host_path: false
     read_only: true
     cap_drop: [ALL]
-    security_opt: ["no-new-privileges:true"]
+    cap_add: [SYS_CHROOT]
+    security_opt:
+      - "no-new-privileges:true"
+      - "seccomp=./docker/chromium-seccomp.json"
     tmpfs:
       - /tmp:size=${MONITO_TMPFS_SIZE:-128m}
     networks:

@@ -1,7 +1,7 @@
 # Monito and Tools
 
 Two distributions: `packages/monito` and `packages/tools`.
-The original `monito/` is preserved, but excluded from new images and packages.
+Host development uses the independent agent in `nexo/`; the legacy `monito/` development agent has been removed. Monito Box remains in `packages/monito`.
 
 ## Development
 

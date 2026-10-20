@@ -8,7 +8,7 @@ automatic deployment, or PyPI installation is required.
 ## Prepare
 
 Use a distribution of the selected release's deployment files: `compose.yaml`,
-`docker/*.env`, `docker/compose.env.example`, and the `data-examples/` data tree. Obtain these from the tagged
+`docker/*.env`, `docker/compose.env.example`, `docker/chromium-seccomp.json`, and the `data-examples/` data tree. Obtain these from the tagged
 source archive; a repository clone is not required. Keep them under a deployment
 root such as `/srv/monito`. Run the commands below from that root.
 
@@ -54,7 +54,7 @@ docker compose -p monito --env-file docker/compose.env exec monito skiller @moni
 ```
 
 Check persistence, flow resolution and required integrations as well as container
-status. Monito starts idle: start/check its Skiller server and listeners explicitly
+status. Monito starts its Skiller server automatically; verify server health and prepare listeners explicitly
 when webhooks are needed. Do not register external integrations as a health check.
 
 ## Rollback

@@ -18,7 +18,7 @@ steps:
       - "skiller-user"
       - "./instructions/use-box.md"
       - "./instructions/install-packages.md"
-      - "./instructions/use-internet-search.md"
+      - "./instructions/use-search-ddgs.md"
       - "./instructions/use-ggets.md"
       - "./instructions/use-health.md"
       - "./instructions/use-telegram.md"

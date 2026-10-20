@@ -69,13 +69,12 @@ Module help is at `GET /health/help`. Only the Telegram receiver is published to
 
 ## 7. Enable Skiller webhooks when needed
 
-Container startup does not start the Skiller HTTP server or create/resume webhook
-listeners. Check status and start the server only if stopped:
+The container entrypoint starts the Skiller HTTP server and waits for health
+before running the main command. It does not create or resume webhook listeners.
+Verify server status:
 
 ```bash
 docker compose --env-file docker/compose.env exec monito skiller server status
-# Only if stopped:
-docker compose --env-file docker/compose.env exec monito skiller server start
 ```
 
 Verify access from Ggets, not just from inside Monito:

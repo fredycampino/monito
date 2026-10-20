@@ -1,31 +1,25 @@
-name: monito
-description: "Monito agent developer"
+name: nexo
+description: "Development agent for Monito, Ggets and deployments"
 version: "0.1"
-start: intro
-
+start: ask_user
 inputs: {}
-
 steps:
-  - notify: intro
-    message: "I am monito, an agentic flows developer"
-    next: ask_user
-
   - wait_input: ask_user
-    prompt: "Write a task..."
-    next: monito
-
-  - agent: monito
+    prompt: "¿Qué desarrollamos hoy?"
+    next: nexo
+  - agent: nexo
     config:
       file: "./agent.dev.json"
     system:
       file: "./system.md"
     instructions:
-      - "./env-execution.md"
+      - "./instructions/development.md"
+      - "./instructions/use-repo.md"
       - "create-flows"
       - "solve-task-style"
       - "response-style"
       - "skiller-user"
-      - "./use-telegram.md"
+      - "./instructions/project-context.md"
     task: '{{output_value("ask_user").payload.text}}'
     tools:
       - files

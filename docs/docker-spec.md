@@ -36,7 +36,7 @@ Docker's `internal: true`: outbound provider access remains available.
 
 ## 2. Images and resources
 
-- **Monito:** Python, Monito, Skiller, curl, CA certificates and procps.
+- **Monito:** Python, Monito, Skiller, curl, CA certificates, procps, Git, Chromium and Browser Harness (0.1.13) and DDGS (9.16.0).
 - **Ggets:** Python, the Ggets HTTP manager and registered Health/Telegram modules.
 - Neither image installs the other product. Images contain no personal settings,
   secrets or runtime state.
@@ -63,12 +63,14 @@ separate responsibilities.
 
 ## 3. Startup
 
-- Monito runs `sleep infinity` under Docker init for interactive Skiller use.
+- Monito's entrypoint runs `skiller server start`, then executes `sleep infinity`
+  under Docker init for interactive Skiller use. A failed startup exits nonzero.
 - Ggets runs `ggets serve` in the foreground.
 - Both use `restart: unless-stopped`.
 - Startup does not install dependencies or create user configuration.
-- Container startup does not start the Skiller webhook server, create listeners,
-  or resume agent runs automatically. Start/check these explicitly when needed.
+- Each container start starts the Skiller webhook server and waits for HTTP health.
+  It does not create listeners or resume agent runs automatically.
+- A later server failure is not supervised while `sleep infinity` remains alive.
 - Monito does not administer the Ggets container.
 
 ## 4. Configuration and mounts
@@ -132,6 +134,16 @@ Host paths below are defaults, configurable in `docker/compose.env`:
 - Non-root processes, read-only image filesystems, dropped capabilities and
   `no-new-privileges`. Only mounted writable state/workspace and temporary
   storage are writable; host ownership must permit the selected UID/GID.
+- Monito adds only `SYS_CHROOT` to its otherwise empty capability bounding set
+  and uses `docker/chromium-seccomp.json` to allow Chromium's namespace sandbox.
+  It remains non-root with `no-new-privileges` and the default AppArmor profile;
+  do not launch Chromium with `--no-sandbox`.
+- The vendored seccomp profile comes from
+  [Playwright](https://github.com/microsoft/playwright/blob/main/utils/docker/seccomp_profile.json):
+  Docker's default-style allowlist with additional `clone`, `setns`, and `unshare`
+  permissions. Review upstream changes before updating it. Ship this file with Compose.
+- Chromium and Browser Harness are installed but the browser is not automatically
+  started. Browser lifecycle integration is separate work.
 - Do not mount the Docker socket or the entire host filesystem.
 - Provider secrets are mounted only in Ggets. Monito holds credentials required
   for its own operation, including its LLM provider.
