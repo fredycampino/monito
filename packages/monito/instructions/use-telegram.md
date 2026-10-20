@@ -10,7 +10,7 @@ text, prefixed with `[Notification][Telegram]`, to the subscriber agent's
 `run_id`. The listener and subscriber must use the same Skiller database.
 To reply, the agent uses GgTelegram's `send`, not the Telegram API.
 
-To start the integration, ask the user for the `run_id`, prepare the server and
+To start the integration, ask the user for the `run_id`, check the server, prepare the
 listener, and register Skiller's internal URL with GgTelegram. Do not ask the
 user for a public consumer URL or confuse that internal URL with GgTelegram's
 public webhook.
@@ -33,13 +33,13 @@ separately.
 SUBSCRIBER_RUN_ID='<run_id supplied by the user>'
 ```
 
-## 3. Check the Skiller server and start it if needed
-Check its status; run `start` only if it is stopped.
+## 3. Check the Skiller server
+The container entrypoint starts the server. Verify its status; if stopped, report
+the deployment failure instead of starting it yourself. Do not proceed with
+registration until the server is available.
 
 ```bash
 skiller server status
-# Only if stopped:
-skiller server start
 ```
 
 ## 4. Start the webhook flow

@@ -31,8 +31,15 @@ shared internal network. The tree below shows your container, not the host.
 - `stui`: Skiller terminal interface.
 - `python`, `python3`, `pip`: Python 3.12 and package installation in your own venvs.
 - `curl`: HTTP requests.
+- `ddgs`: web search and page extraction to Markdown.
+- `git`: repository operations.
+- `browser-harness`: control Chromium through CDP; see `browser-harness --help`.
+- `chromium`: browser; `chromium-sandbox` provides sandbox support. The browser is not started automatically.
 - `ps`, `pgrep`, `pkill`, `top`: process inspection and management (`procps`).
 - `sh`, `bash`: shells, alongside standard Linux utilities.
 
 `ggets` is installed in the Ggets container, not Monito; use its HTTP API from
-Monito. `ddgs`, `uv` and `pipx` are not installed by the Monito Dockerfile.
+Monito. `uv` and `pipx` are not installed by the Monito Dockerfile.
+
+Chromium runs as a non-root user with its sandbox enabled under the supplied Compose
+configuration. Do not use `--no-sandbox`.

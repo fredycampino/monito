@@ -4,7 +4,28 @@ All notable changes to Monito are documented in this file.
 
 ## Unreleased
 
-- Nothing yet.
+### Changed
+
+- Increase the default Monito container budget to 8 GB RAM and 8 CPUs, without extra swap.
+
+### Added
+
+- Preinstall DDGS 9.16.0 for web search and Markdown extraction without a workspace venv.
+
+- Install Browser Harness 0.1.13 in the Monito image for Chromium control through CDP.
+
+- Include Chromium with namespace sandbox support using a dedicated seccomp profile and only the SYS_CHROOT capability.
+
+- Include Git in the Monito image for repository operations.
+- Add Nexo as an independent host development agent, without changing Monito Box or migrating existing sessions.
+
+### Removed
+
+- Remove the legacy host development agent in `monito/`; Nexo replaces it while preserving historical context and run records.
+
+### Fixed
+
+- Start the Skiller webhook server through the Monito container entrypoint on every startup and restart; leave status verification to the agent.
 
 ## 0.1.0-beta.5 - 2026-10-18
 

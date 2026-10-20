@@ -38,3 +38,32 @@ def test_agent_profile_is_external_and_read_only():
     assert not (ROOT / "packages/monito/agent.json").exists()
     example = json.loads((ROOT / "data-examples/monito/settings/agent.json").read_text())
     assert "tools" in example
+
+
+@pytest.mark.parametrize("start_exit", [0, 1])
+def test_entrypoint_starts_server_before_command(tmp_path, start_exit):
+    trace = tmp_path / "trace"
+    skiller = tmp_path / "skiller"
+    skiller.write_text(
+        '#!/bin/sh\nprintf "%s\\n" "$*" >> "$TRACE"\nexit "$START_EXIT"\n'
+    )
+    skiller.chmod(0o755)
+    result = subprocess.run(
+        ["sh", str(ROOT / "docker/monito-entrypoint.sh"), "sh", "-c",
+         'printf "%s\\n" "$1" >> "$TRACE"', "command", "argument with spaces"],
+        env={**os.environ, "PATH": f"{tmp_path}:{os.environ['PATH']}",
+             "TRACE": str(trace), "START_EXIT": str(start_exit)},
+        capture_output=True, text=True,
+    )
+    assert result.returncode == start_exit
+    expected = ["server start"]
+    if start_exit == 0:
+        expected.append("argument with spaces")
+    assert trace.read_text().splitlines() == expected
+
+
+def test_monito_image_installs_entrypoint():
+    dockerfile = (ROOT / "docker/Dockerfile.monito").read_text()
+    assert 'ENTRYPOINT ["/usr/local/bin/monito-entrypoint"]' in dockerfile
+    assert "COPY --chmod=755 docker/monito-entrypoint.sh" in dockerfile
+    assert 'CMD ["sleep", "infinity"]' in dockerfile

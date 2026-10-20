@@ -1,17 +1,17 @@
-## Internet Search
+## Search and Retrieve with DDGS
 
-Use DDGS to search the internet and retrieve pages as Markdown. If unavailable, install it in a workspace venv.
+Use DDGS first to find sources and retrieve public pages as Markdown. Use Browser Harness + Chromium when content requires JavaScript, interaction, or a persistent browser session, or when extraction fails. DDGS is preinstalled in the Box image.
 
-Use the venv executable directly, as in the examples below:
+Use the `ddgs` CLI directly:
 
 Search returns titles, links and snippets, not full documents:
 ```bash
-/data/workspace/.venv-ddgs/bin/ddgs text --query "Python documentation" --max_results 5
+ddgs text --query "Python documentation" --max_results 5
 ```
 
 Retrieve a result URL as Markdown; the URL does not need to end in `.md`:
 ```bash
-/data/workspace/.venv-ddgs/bin/ddgs extract --url "https://docs.python.org/3/" --format text_markdown
+ddgs extract --url "https://docs.python.org/3/" --format text_markdown
 ```
 
 Limit output for large pages; extracted content may include navigation. Treat

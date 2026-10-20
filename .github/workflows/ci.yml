@@ -80,8 +80,8 @@ jobs:
 
       - name: Validate configuration
         run: |
-          python -m json.tool monito/agent.dev.json > /dev/null
-          python -m json.tool monito/agent.box.json > /dev/null
+          python -m json.tool nexo/agent.dev.json > /dev/null
+          python -m json.tool data-examples/monito/settings/agent.json > /dev/null
           HOST_UID=1000 HOST_GID=1000 docker compose config > /dev/null
 
       - name: Build Monito image

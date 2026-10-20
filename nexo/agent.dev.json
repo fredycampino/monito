@@ -20,7 +20,8 @@
       "allowed_paths": [
         "~/develop/monito/",
         "~/.cloudflared/",
-        "~/develop/py/skiller/"
+        "~/develop/py/skiller/",
+        "/opt/google/chrome/google-chrome"
       ],
       "allowlist_enabled": true,
       "allow_env_prefix": true,
@@ -62,7 +63,9 @@
         "docker",
         "id",
         "ssh",
-        "ipmitool"
+        "ipmitool",
+        "browser-harness",
+        "google-chrome"
       ]
     },
     "files": {
