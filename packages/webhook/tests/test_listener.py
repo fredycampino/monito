@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 from pathlib import Path
 
@@ -37,12 +38,16 @@ def test_flow_structure():
         {"text": '$(exit 99) "quoted"\nUnicode á', "chat_id": 42},
     ],
 )
-def test_forwards_entire_payload(payload):
+def test_forwards_entire_payload(payload, tmp_path):
+    executable = tmp_path / "skiller"
+    executable.write_text('#!/bin/sh\nprintf "%s\\0" "$@"\n')
+    executable.chmod(0o755)
     event = json.dumps(payload, ensure_ascii=False)
     command = FLOW["steps"][2]["command"]
     result = subprocess.run(
-        ["bash", "-c", 'skiller() { printf "%s\\0" "$@"; };\n' + command],
+        ["bash", "-c", command],
         env={
+            "PATH": f"{tmp_path}:{os.environ['PATH']}",
             "SUBSCRIBER_RUN_ID": "subscriber",
             "WEBHOOK_EVENT": event,
             "NOTIFICATION_LABELS": "[Notification][Telegram]",
@@ -59,10 +64,14 @@ def test_forwards_entire_payload(payload):
     ]
 
 
-def test_failure_is_not_hidden():
+def test_failure_is_not_hidden(tmp_path):
+    executable = tmp_path / "skiller"
+    executable.write_text("#!/bin/sh\nexit 1\n")
+    executable.chmod(0o755)
     result = subprocess.run(
-        ["bash", "-c", "skiller() { return 1; };\n" + FLOW["steps"][2]["command"]],
+        ["bash", "-c", FLOW["steps"][2]["command"]],
         env={
+            "PATH": f"{tmp_path}:{os.environ['PATH']}",
             "SUBSCRIBER_RUN_ID": "subscriber",
             "WEBHOOK_EVENT": "{}",
             "NOTIFICATION_LABELS": "[Notification][Telegram]",

@@ -106,7 +106,7 @@ restart Ggets after changing its mounted configuration.
 ## Resource limits
 
 `docker/compose.env` sets Monito's memory, CPU, process count, and `/tmp` size.
-Defaults: 2 GiB memory, no extra swap, 4 CPUs, 256 processes, and 128 MiB `/tmp`.
+Defaults: 8 GiB memory, no extra swap, 8 CPUs, 256 processes, and 128 MiB `/tmp`.
 Apply changes with `docker compose --env-file docker/compose.env up -d`.
 
 See [Docker specification](docker-spec.md) for the deployment design.

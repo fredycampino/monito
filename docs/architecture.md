@@ -20,7 +20,8 @@ CLI and HTTP call the same service logic. Modules do not import the manager.
 Each registry entry declares a factory and an explicit tuple of enabled operations.
 A factory receives the module configuration and those operations and returns an object exposing
 `register_cli(parser)`, `router`, and `lifespan()` (a synchronous context manager).
-The manager enters that context for CLI execution or the HTTP application life.
+The manager enters that context only for the HTTP application lifetime.
+CLI commands call their selected service without entering module lifespans.
 The single registry explicitly registers health for all environments. There is no
 separate development entry point or flavor.
 

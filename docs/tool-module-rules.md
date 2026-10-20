@@ -96,9 +96,8 @@ helpers with integration-specific responsibilities.
   Telegram uses this for its separate provider receiver when configured; starting
   that listener does not register a webhook with Telegram. Provider registration
   requires the explicit `start` operation.
-- The current CLI also enters the manager/module lifespans before executing an
-  operation. A configured Telegram module may therefore open its receiver during
-  CLI execution, not only during `ggets serve`.
+- Only `ggets serve` enters module lifespans for the HTTP application lifetime.
+  CLI commands call services directly without starting module listeners.
 
 ### `cli.py`: command adapter
 
