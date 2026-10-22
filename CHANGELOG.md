@@ -4,6 +4,10 @@ All notable changes to Monito are documented in this file.
 
 ## Unreleased
 
+- Nothing yet.
+
+## 0.1.0-beta.8 - 2026-10-23
+
 ### Added
 
 - Add an optional USB ADB server with persistent authorization keys and a private client connection from Monito; install ADB in the Monito image.
