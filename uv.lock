@@ -940,7 +940,7 @@ dependencies = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "skiller", specifier = "==0.1.0b44" }]
+requires-dist = [{ name = "skiller", specifier = "==0.1.0b45" }]
 
 [[package]]
 name = "more-itertools"
@@ -1573,7 +1573,7 @@ wheels = [
 
 [[package]]
 name = "skiller"
-version = "0.1.0b44"
+version = "0.1.0b45"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "boto3" },
@@ -1585,9 +1585,9 @@ dependencies = [
     { name = "textual" },
     { name = "uvicorn" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/46/d2/a6227b2d7265558256211163d3e779c374a49fd70dd1cbec7799a08cea65/skiller-0.1.0b44.tar.gz", hash = "sha256:0a54e56ba141a318d6dbc40bcfb8a126b70a9f1c0c25c6059da5ed7e55a74abd", size = 333931, upload-time = "2026-10-17T23:29:07.623Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/6b/85/0f49f055ff54b3087f594217e61683cd1d972507fb372ea25df92728bf55/skiller-0.1.0b45.tar.gz", hash = "sha256:ac6f3c6c62e72376130b4daf57c3ba40faa833104dcbe5bb6d90cf03a708ef5c", size = 337586, upload-time = "2026-10-22T21:08:59.057Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/04/75/c966fd9f2d409e708e9ef4ba3c52c4549324bee351645965304da8f427c2/skiller-0.1.0b44-py3-none-any.whl", hash = "sha256:09f8a9a2d539e99ae11a6940d78c392d0f0a280f5c4aee077ff523fccc7b191f", size = 556499, upload-time = "2026-10-17T23:29:05.979Z" },
+    { url = "https://files.pythonhosted.org/packages/90/9b/6d6269b7ebfb84af5214d906ad13702e4f6f3ad60edb29b6051d16ee1078/skiller-0.1.0b45-py3-none-any.whl", hash = "sha256:564a5c98b02cea7fc9fcf8766ec89558d722eb40524ddb80ec9ca478c6a247cf", size = 561582, upload-time = "2026-10-22T21:08:57.335Z" },
 ]
 
 [[package]]

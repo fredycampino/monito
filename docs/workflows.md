@@ -65,7 +65,7 @@ The tag identifies the exact source used for publication. No deployment occurs i
 3. `[ci]` builds and publishes both images from that commit, with the same version:
    - `ghcr.io/fredycampino/monito-box:X.Y.Z`
    - `ghcr.io/fredycampino/ggets:X.Y.Z`
-4. Publication is complete only when both images are available. Image pushes are not atomic: if one fails, retry the release publication before deployment. A Git tag alone does not prove both images exist.
+4. The optional Android integration also publishes `ghcr.io/fredycampino/monito-adb:X.Y.Z` from the same release, using the `adb-server` image target. Deployments enabling ADB must wait for this image as well. Publication of the base deployment is complete only when both base images are available. Image pushes are not atomic: if one fails, retry the release publication before deployment. A Git tag alone does not prove both images exist.
 5. Python distributions are `monito` (`packages/monito`) and `ggets` (`packages/tools`). CI builds wheels and source distributions to validate packaging; the current publication workflow does not upload them to PyPI or attach them to a GitHub release. They are installed in the container images. Standalone Python publication requires a separate approved policy and credentials; the legacy `sk-telegram` and `sk-cloudflared` packages are no longer release artifacts.
 
 Production deployment must use the explicit release tag for both images, never `:latest` or `:dev`. No automatic deployment occurs after publication.

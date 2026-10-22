@@ -4,7 +4,13 @@ All notable changes to Monito are documented in this file.
 
 ## Unreleased
 
-- Nothing yet.
+### Added
+
+- Add an optional USB ADB server with persistent authorization keys and a private client connection from Monito; install ADB in the Monito image.
+
+### Fixed
+
+- Update Skiller to 0.1.0-beta.45, removing the shell denylist that falsely blocked Telegram replies containing literal text such as the Spanish word “su”, while retaining configured tool permissions.
 
 ## 0.1.0-beta.7 - 2026-10-20
 
