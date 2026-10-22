@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "monito"
 dynamic = ["version"]
 requires-python = ">=3.12"
-dependencies = ["skiller==0.1.0-beta.44"]
+dependencies = ["skiller==0.1.0-beta.45"]
 description = "Minimal Monito developer agent"
 
 [project.scripts]

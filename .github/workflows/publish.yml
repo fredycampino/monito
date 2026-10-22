@@ -149,3 +149,11 @@ jobs:
         run: |
           docker build -f docker/Dockerfile.ggets --tag "$IMAGE:$VERSION" .
           docker push "$IMAGE:$VERSION"
+
+      - name: Build and publish ADB image
+        env:
+          IMAGE: ghcr.io/${{ github.repository_owner }}/monito-adb
+          VERSION: ${{ steps.identity.outputs.version }}
+        run: |
+          docker build -f docker/Dockerfile.monito --target adb-server --tag "$IMAGE:$VERSION" .
+          docker push "$IMAGE:$VERSION"

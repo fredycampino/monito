@@ -172,3 +172,9 @@ Host paths below are defaults, configurable in `docker/compose.env`:
   a routine health check.
 - Verify configured API authentication and absence of tool provider secrets in
   Monito. Structural checks alone do not certify the deployment's security.
+
+## 9. Optional Android USB access
+
+See [Android ADB](android-adb.md) for the optional `docker/compose.adb.yaml`
+override, server HOME persistence, host USB permissions and verification.
+The base deployment remains two services; ADB is enabled explicitly.

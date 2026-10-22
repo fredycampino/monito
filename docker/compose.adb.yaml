@@ -1,0 +1,45 @@
+# Opt in: docker compose -f compose.yaml -f docker/compose.adb.yaml ...
+services:
+  monito:
+    environment:
+      ADB_SERVER_SOCKET: tcp:adb:5037
+    networks:
+      adb: {}
+  adb:
+    image: ${IMAGE_PREFIX:-}monito-adb:${RELEASE_VERSION:-dev}
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.monito
+      target: adb-server
+    init: true
+    restart: unless-stopped
+    user: "${HOST_UID:-10001}:${HOST_GID:-10001}"
+    group_add:
+      - "${ADB_USB_GID:?Set ADB_USB_GID to the host USB access group GID}"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 64
+    tmpfs: [/tmp]
+    volumes:
+      - type: bind
+        source: ${ADB_HOME_HOST_DIR:-./data/adb/home}
+        target: /data/home
+        bind:
+          create_host_path: false
+      - type: bind
+        source: /dev/bus/usb
+        target: /dev/bus/usb
+        bind:
+          create_host_path: false
+    # Major 189 is USB. Wildcard minors allow reconnects without recreation;
+    # host device permissions still apply. This exposes the USB tree, not just one phone.
+    device_cgroup_rules: ["c 189:* rw"]
+    networks: [adb]
+networks:
+  adb:
+    internal: true
+
+# No published ports. Only Monito and the ADB server join this network.
+# HOME/.android stores the server's authorization keys; Monito needs no keys.
+# Explicit remote ADB connections do not use a separate local ADB daemon.

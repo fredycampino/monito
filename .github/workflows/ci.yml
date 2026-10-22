@@ -92,6 +92,12 @@ jobs:
           docker build -f docker/Dockerfile.ggets -t ggets:ci .
           docker run --rm --network none --read-only ggets:ci --help
 
+      - name: Verify optional ADB deployment
+        run: |
+          ADB_USB_GID=46 docker compose -f compose.yaml -f docker/compose.adb.yaml config > /dev/null
+          docker build -f docker/Dockerfile.monito --target adb-server -t monito-adb:ci .
+          docker run --rm --network none --read-only monito-adb:ci version
+
       - name: Build distributions
         run: |
           python -m build packages/tools
