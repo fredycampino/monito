@@ -17,6 +17,7 @@ steps:
       - "response-style"
       - "skiller-user"
       - "./instructions/use-box.md"
+      - "./instructions/use-mobile.md"
       - "./instructions/install-packages.md"
       - "./instructions/use-search-ddgs.md"
       - "./instructions/use-ggets.md"

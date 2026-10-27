@@ -1,4 +1,5 @@
 .venv/
+node_modules/
 __pycache__/
 .pytest_cache/
 .ruff_cache/
@@ -18,3 +19,6 @@ config.ggets.dev.json
 
 # Nexo local investigation artifacts
 nexo/.tmp/
+
+# Local Nexo agent permissions and configuration
+/nexo/agent.dev.json
