@@ -1,0 +1,9 @@
+{
+  "name": "monito-appium-lab",
+  "private": true,
+  "description": "Local development tools for Monito",
+  "devDependencies": {
+    "appium": "3.9.0",
+    "appium-uiautomator2-driver": "8.7.2"
+  }
+}

@@ -4,7 +4,7 @@ All notable changes to Monito are documented in this file.
 
 ## Unreleased
 
-- Nothing yet.
+- Replace the ADB-only deployment with a single optional mobile service combining ADB, Appium and UiAutomator2 over a private Docker network, preserving ADB authorization keys.
 
 ## 0.1.0-beta.8 - 2026-10-23
 

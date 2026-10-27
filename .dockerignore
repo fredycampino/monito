@@ -14,3 +14,5 @@ legacy
 
 config.ggets.dev.json
 .venv-*
+
+**/node_modules

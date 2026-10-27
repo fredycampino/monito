@@ -2,7 +2,8 @@
   "tools": {
     "shell": {
       "allowed_paths": [
-        "/data/workspace"
+        "/data/workspace",
+        "/data/local/tmp/monito"
       ],
       "allowlist_enabled": false,
       "allowed_commands": []

@@ -80,7 +80,6 @@ jobs:
 
       - name: Validate configuration
         run: |
-          python -m json.tool nexo/agent.dev.json > /dev/null
           python -m json.tool data-examples/monito/settings/agent.json > /dev/null
           HOST_UID=1000 HOST_GID=1000 docker compose config > /dev/null
 
@@ -92,11 +91,11 @@ jobs:
           docker build -f docker/Dockerfile.ggets -t ggets:ci .
           docker run --rm --network none --read-only ggets:ci --help
 
-      - name: Verify optional ADB deployment
+      - name: Verify optional mobile deployment
         run: |
-          ADB_USB_GID=46 docker compose -f compose.yaml -f docker/compose.adb.yaml config > /dev/null
-          docker build -f docker/Dockerfile.monito --target adb-server -t monito-adb:ci .
-          docker run --rm --network none --read-only monito-adb:ci version
+          ADB_USB_GID=46 docker compose -f compose.yaml -f docker/compose.mobile.yaml config --quiet
+          docker build -f docker/Dockerfile.mobile -t monito-mobile:ci .
+          python scripts/ci/check-mobile.py
 
       - name: Build distributions
         run: |

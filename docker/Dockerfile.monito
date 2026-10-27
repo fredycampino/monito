@@ -1,15 +1,7 @@
-FROM python:3.12-slim AS adb-base
+FROM python:3.12-slim
 RUN apt-get update && apt-get install -y --no-install-recommends adb \
     && rm -rf /var/lib/apt/lists/*
 
-FROM adb-base AS adb-server
-ENV HOME=/data/home
-WORKDIR /data/home
-USER 10001:10001
-ENTRYPOINT ["adb"]
-CMD ["-a", "-P", "5037", "server", "nodaemon"]
-
-FROM adb-base AS monito
 RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates procps git chromium chromium-sandbox \
     && rm -rf /var/lib/apt/lists/*
 ENV HOME=/data/home PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
