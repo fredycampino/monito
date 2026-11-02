@@ -4,6 +4,8 @@ All notable changes to Monito are documented in this file.
 
 ## Unreleased
 
+## 0.1.0-beta.10 - 2026-11-02
+
 ### Added
 
 - Activate Telegram typing automatically before Monito processes Telegram tasks; indicator failures do not block processing.
