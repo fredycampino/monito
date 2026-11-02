@@ -3,9 +3,31 @@ description: "Minimal developer agent"
 start: ask_user
 inputs: {}
 steps:
+  # Wait for the next task.
   - wait_input: ask_user
     prompt: "What shall we work on?"
+    next: map_channel
+
+  # Label the task with its input channel.
+  - shell: map_channel
+    command: '"{{runtime.python}}" "{{flow.dir}}/scripts/map_channel.py"'
+    cwd: "{{flow.dir}}"
+    env:
+      TASK: '{{output_value("ask_user").payload.text}}'
+    timeout: 10
+    next: inprogress
+
+  # Activate Telegram typing; local input needs no indicator.
+  - shell: inprogress
+    command: '"{{runtime.python}}" "{{flow.dir}}/scripts/inprogress.py"'
+    cwd: "{{flow.dir}}"
+    env:
+      TASK: '{{output_value("map_channel").stdout}}'
+    timeout: 15
+    check: false
     next: monito
+
+  # Harness working.
   - agent: monito
     config:
       file: "/etc/monito/agent.json"
@@ -13,8 +35,8 @@ steps:
       file: "./system.md"
     instructions:
       - "create-flows"
-      - "solve-task-style"
-      - "response-style"
+      - "./instructions/style-solve-task.md"
+      - "./instructions/style-response.md"
       - "skiller-user"
       - "./instructions/use-box.md"
       - "./instructions/use-mobile.md"
@@ -23,8 +45,19 @@ steps:
       - "./instructions/use-ggets.md"
       - "./instructions/use-health.md"
       - "./instructions/use-telegram.md"
-    task: '{{output_value("ask_user").payload.text}}'
+    task: '{{output_value("map_channel").stdout}}'
     tools:
       - files
       - shell
+    next: reply_channel
+
+  # Deliver the final answer to Telegram; local input needs no delivery.
+  - shell: reply_channel
+    command: '"{{runtime.python}}" "{{flow.dir}}/scripts/reply_channel.py"'
+    cwd: "{{flow.dir}}"
+    env:
+      TASK: '{{output_value("map_channel").stdout}}'
+      AGENT_OUTPUT: '{{output_value("monito")}}'
+    timeout: 45
+    check: false
     next: ask_user

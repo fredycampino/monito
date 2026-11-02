@@ -67,3 +67,16 @@ def test_monito_image_installs_entrypoint():
     assert 'ENTRYPOINT ["/usr/local/bin/monito-entrypoint"]' in dockerfile
     assert "COPY --chmod=755 docker/monito-entrypoint.sh" in dockerfile
     assert 'CMD ["sleep", "infinity"]' in dockerfile
+
+
+def test_skiller_environment_preserves_persistent_paths():
+    environment = dict(
+        line.split("=", 1)
+        for line in (ROOT / "docker/monito.env").read_text().splitlines()
+        if line and not line.startswith("#")
+    )
+    assert environment["HOME"] == "/data/home"
+    assert environment["SKILLER_DB_PATH"] == "/data/home/.skiller/db/agent.db"
+    assert environment["SKILLER_RUNTIME_CONFIG_FILE"] == "/etc/monito/config.json"
+    assert "AGENT_DB_PATH" not in environment
+    assert "AGENT_RUNTIME_CONFIG_FILE" not in environment

@@ -4,6 +4,20 @@ All notable changes to Monito are documented in this file.
 
 ## Unreleased
 
+### Added
+
+- Activate Telegram typing automatically before Monito processes Telegram tasks; indicator failures do not block processing.
+
+- Deliver Monito final Telegram replies from the flow using the original chat ID, without agent-managed reply transport. Local output remains unchanged.
+
+- Add the HTTP Telegram typing operation with bounded randomized renewals and cancellation after successful replies to the same chat.
+
+### Changed
+
+- Label Monito tasks with `[Channel][input]` for local input and preserve `[Channel][Telegram]` envelopes sent by newly configured Telegram listeners.
+
+- Update Skiller to 0.1.0-beta.50 and migrate deployment environment variables to `SKILLER_DB_PATH` and `SKILLER_RUNTIME_CONFIG_FILE`, preserving the existing database and configuration paths. Existing deployments must update their environment files when upgrading; the old variable names are no longer recognized.
+
 ## 0.1.0-beta.9 - 2026-10-27
 
 - Replace the ADB-only deployment with a single optional mobile service combining ADB, Appium and UiAutomator2 over a private Docker network, preserving ADB authorization keys.

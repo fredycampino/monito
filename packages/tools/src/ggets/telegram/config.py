@@ -88,6 +88,7 @@ def map_config(value: dict[str, object]) -> Config:
             "/telegram/stop",
             "/telegram/status",
             "/telegram/send",
+            "/telegram/typing",
         }
     ):
         values["webhook"] = webhook

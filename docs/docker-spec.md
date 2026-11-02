@@ -104,8 +104,8 @@ Container filesystem (`RW` = writable bind mount; `RO` = read-only):
 ```
 
 Runtime variables: `HOME=/data/home`,
-`AGENT_DB_PATH=/data/home/.skiller/db/agent.db`,
-`AGENT_RUNTIME_CONFIG_FILE=/etc/monito/config.json` (from `docker/monito.env`);
+`SKILLER_DB_PATH=/data/home/.skiller/db/agent.db`,
+`SKILLER_RUNTIME_CONFIG_FILE=/etc/monito/config.json` (from `docker/monito.env`);
 `TERM` and `COLORTERM` come from Compose. The mobile overlay adds
 `ADB_SERVER_SOCKET=tcp:mobile:5037` and `APPIUM_URL=http://mobile:4723`.
 The flow explicitly loads `/etc/monito/agent.json`; runtime `flow_paths` uses the
@@ -215,7 +215,7 @@ Host paths below are defaults, configurable in `docker/compose.env`:
 | Ggets | `data/ggets/state` | `/data/telegram` | Read/write |
 
 - `MONITO_CONFIG_HOST_FILE` selects the host runtime JSON;
-  `AGENT_RUNTIME_CONFIG_FILE=/etc/monito/config.json` selects it in Monito.
+  `SKILLER_RUNTIME_CONFIG_FILE=/etc/monito/config.json` selects it in Monito.
   It configures `flow_paths` and the Skiller webhook server address.
 - The mounted `agent.json` configures the Monito agent, separately from runtime
   configuration. Personal Skiller settings/state also reside under `/data/home`.

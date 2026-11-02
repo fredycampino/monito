@@ -38,6 +38,8 @@ def register_cli(parser, service, enabled_operations):
         "send": execute_send,
     }
     for name in enabled_operations:
+        if name == "typing":
+            continue  # Renewal tasks must live in the persistent HTTP service.
         command = operations.add_parser(name)
         command.add_argument("--json", default="{}", help="JSON input object")
         command.set_defaults(execute=handlers[name])

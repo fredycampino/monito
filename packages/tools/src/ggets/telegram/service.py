@@ -10,6 +10,7 @@ from ggets.telegram.business.delivery import DeliveryService
 from ggets.telegram.business.incoming_update import IncomingUpdateService
 from ggets.telegram.business.message import MessageService
 from ggets.telegram.business.subscription import ConsumerSubscriptionService
+from ggets.telegram.business.typing import TypingService
 from ggets.telegram.business.webhook import TelegramWebhookService
 from ggets.telegram.config import ConfigurationError
 from ggets.telegram.schemas import OperationResult
@@ -26,6 +27,7 @@ class TelegramService:
         self.delivery = DeliveryService(
             transport if transport is not None else httpx, config.request_timeout_seconds
         )
+        self.typing_actions = TypingService(self.client)
         self.lock = RLock()
 
     def secret(self):
@@ -57,6 +59,7 @@ class TelegramService:
         with self.lock:
             self.webhook().unregister()
             self.subscription.deactivate()
+            self.typing_actions.clear()
             return OperationResult(status="ok", data=self.subscription.status())
 
     def status(self, request):
@@ -74,7 +77,14 @@ class TelegramService:
 
     def send(self, request):
         self.config.require_configured()
-        return OperationResult(status="ok", data=self.messages.send(request))
+        return OperationResult(
+            status="ok", data=self.typing_actions.send_message(request, self.messages.send)
+        )
+
+    def typing(self, request):
+        self.config.require_configured()
+        self.typing_actions.start(request.chat_id, request.timeout)
+        return OperationResult(status="ok", data={"chat_id": request.chat_id})
 
     def receive_update(self, update, secret_token):
         event = IncomingUpdateService(self.secret()).process(update, secret_token)

@@ -1,5 +1,7 @@
 """Telegram module assembly and lifecycle."""
 
+from contextlib import contextmanager
+
 from ggets.telegram.cli import register_cli
 from ggets.telegram.config import map_config
 from ggets.telegram.help import OPERATIONS
@@ -19,8 +21,13 @@ class TelegramModule:
     def register_cli(self, parser):
         register_cli(parser, self.service, self.operations)
 
+    @contextmanager
     def lifespan(self):
-        return receiver_lifespan(self.service)
+        try:
+            with receiver_lifespan(self.service):
+                yield
+        finally:
+            self.service.typing_actions.close()
 
 
 def create_module(config, operations):
