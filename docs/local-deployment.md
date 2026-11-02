@@ -151,7 +151,7 @@ no image rebuild is needed.
 | `MONITO_CONFIG_HOST_FILE` | `./data/monito/settings/config.json` | `/etc/monito/config.json` (read-only) |
 | `MONITO_SETTINGS_HOST_DIR` | `./data/monito/settings` | Only `agent.json`, mounted read-only at `/etc/monito/agent.json` |
 
-`AGENT_RUNTIME_CONFIG_FILE=/etc/monito/config.json` selects the mounted runtime JSON.
+`SKILLER_RUNTIME_CONFIG_FILE=/etc/monito/config.json` selects the mounted runtime JSON.
 Its `flow_paths` points to `/usr/local/lib/python3.12/site-packages/packages`,
 a mirror of the repository resources: `monito/monito.yaml` and
 `webhook/webhook.yaml`, resolved as `@monito` and `@webhook`.

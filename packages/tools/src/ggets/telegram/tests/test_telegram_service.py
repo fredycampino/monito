@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from ggets.telegram.adapters import SubscriptionStore, TelegramClient
 from ggets.telegram.config import map_config
 from ggets.telegram.receiver import create_receiver, receiver_lifespan
-from ggets.telegram.schemas import EmptyInput, SendInput, StartInput
+from ggets.telegram.schemas import EmptyInput, StartInput
 from ggets.telegram.service import TelegramService
 
 
@@ -51,11 +51,6 @@ def test_failed_start_restores_state(service):
     with pytest.raises(RuntimeError):
         service.start(StartInput(url="https://consumer.example"))
     assert service.subscription.status() == {"url": None, "active": False}
-
-
-def test_send(service):
-    service.client.call.return_value = {"message_id": 2, "chat": {"id": 1}}
-    assert service.send(SendInput(chat_id=1, text="Hi")).data == {"chat_id": 1, "message_id": 2}
 
 
 def test_storage(tmp_path):

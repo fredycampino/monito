@@ -14,7 +14,7 @@ def delivery_step():
     return next(step for step in flow["steps"] if step.get("shell") == "deliver_event")
 
 
-def test_delivery_failure_does_not_prevent_next_event(tmp_path):
+def test_delivery_command_preserves_exit_status_across_invocations(tmp_path):
     step = delivery_step()
     assert step["check"] is False
     assert step["next"] == "wait_message"

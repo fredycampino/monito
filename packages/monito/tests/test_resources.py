@@ -11,6 +11,8 @@ def test_flow():
     assert flow["start"] == "ask_user"
     assert root.joinpath("system.md").is_file()
     agent = next(step for step in flow["steps"] if step.get("agent") == "monito")
+    assert "./instructions/use-telegram.md" in agent["instructions"]
+    assert "./instructions/style-response.md" in agent["instructions"]
     for reference in agent["instructions"]:
         if is_packaged_instruction(reference):
             assert files("apps").joinpath("instructions", f"{reference}.md").is_file()

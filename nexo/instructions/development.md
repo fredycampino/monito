@@ -28,7 +28,8 @@ permitted repository cwd; do not expand permissions or guess paths to evade it.
 Host development, local containers and Max are separate environments. Before
 recreating any container inspect its mounts, HOME, DB and configuration. Preserve
 user sessions and data. Never substitute a clean test HOME for a live one.
-Use isolated DBs and temporary workspaces for tests. Do not run tests against
+Use isolated DBs selected with SKILLER_DB_PATH and temporary workspaces for tests.
+Skiller beta.49+ no longer recognizes AGENT_DB_PATH; never rely on it for isolation. Do not run tests against
 Telegram, external services or user data without explicit authorization.
 
 The agent's task is development, not to register itself as Monito's Telegram

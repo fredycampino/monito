@@ -4,7 +4,7 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from ggets.telegram.config import ConfigurationError
 from ggets.telegram.help import describe_operations
-from ggets.telegram.schemas import EmptyInput, OperationResult, SendInput, StartInput
+from ggets.telegram.schemas import EmptyInput, OperationResult, SendInput, StartInput, TypingInput
 
 
 def create_router(service, enabled_operations):
@@ -35,7 +35,15 @@ def create_router(service, enabled_operations):
     def send(request: SendInput):
         return invoke(service.send, request)
 
-    endpoints = {"start": start, "stop": stop, "status": status, "send": send}
+    def typing(request: TypingInput):
+        try:
+            return invoke(service.typing, request)
+        except RuntimeError:
+            return JSONResponse(
+                {"error": {"code": "telegram_request_failed"}}, status_code=502
+            )
+
+    endpoints = {"start": start, "stop": stop, "status": status, "send": send, "typing": typing}
     for name in enabled_operations:
         router.add_api_route(
             f"/{name}",

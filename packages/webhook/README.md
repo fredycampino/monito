@@ -9,8 +9,11 @@ skiller run ./packages/webhook/webhook.yaml \
   --arg run_id=<subscriber-run-id> \
   --arg webhook=telegram \
   --arg key=inbox \
-  --arg 'labels=[Notification][Telegram]'
+  --arg 'labels=[Channel][Telegram]'
 ```
+
+Existing listeners retain their original `labels` input; this change applies to listeners
+started with the new channel labels.
 
 Use the same Skiller environment/database as the subscriber. Requires a running
 Skiller server. The first step registers the named webhook with POST, JSON and

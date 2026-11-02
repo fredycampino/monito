@@ -1,6 +1,8 @@
 import json
-import tomllib
+import subprocess
+import sys
 from pathlib import Path
+from zipfile import ZipFile
 
 from skiller.application.use_cases.flow.resolve_flow import (
     ResolveFlowInput,
@@ -12,13 +14,39 @@ from skiller.domain.flow.flow_reference import FlowReference
 ROOT = Path(__file__).resolve().parents[3]
 
 
-def test_wheel_resources_mirror_repository():
-    project = tomllib.loads((ROOT / "packages/monito/pyproject.toml").read_text())
-    included = project["tool"]["hatch"]["build"]["targets"]["wheel"]["force-include"]
-    for source, destination in included.items():
-        original = (ROOT / "packages/monito" / source).resolve()
-        assert destination == original.relative_to(ROOT).as_posix()
-        assert original.exists()
+def test_built_wheel_contains_usable_flow_resources(tmp_path):
+    subprocess.run(
+        [sys.executable, "-m", "build", "--wheel", "--no-isolation",
+         "--outdir", str(tmp_path), str(ROOT / "packages/monito")],
+        cwd=ROOT, capture_output=True, text=True, check=True,
+    )
+    with ZipFile(next(tmp_path.glob("*.whl"))) as wheel:
+        for name in (
+            "monito.yaml", "system.md", "scripts/map_channel.py", "scripts/reply_channel.py",
+            "scripts/inprogress.py",
+        ):
+            path = "packages/monito/" + name
+            assert wheel.read(path) == (ROOT / path).read_bytes()
+        for instruction in (ROOT / "packages/monito/instructions").glob("*.md"):
+            path = instruction.relative_to(ROOT).as_posix()
+            assert wheel.read(path) == instruction.read_bytes()
+        path = "packages/webhook/webhook.yaml"
+        assert wheel.read(path) == (ROOT / path).read_bytes()
+        wheel.extractall(tmp_path / "installed")
+    # Run outside the checkout, using only the wheel's extracted resources.
+    installed = tmp_path / "installed"
+    result = subprocess.run(
+        [sys.executable, "-I", "-c",
+         "import sys; sys.path.insert(0, sys.argv[1]); "
+         "from monito.cli import flow_path; print(flow_path())", str(installed)],
+        cwd=tmp_path, capture_output=True, text=True, check=True,
+    )
+    assert Path(result.stdout.strip()) == installed / "packages/monito/monito.yaml"
+    result = subprocess.run(
+        [sys.executable, str(installed / "packages/monito/scripts/map_channel.py")],
+        cwd=tmp_path, env={"TASK": "Hola"}, capture_output=True, text=True, check=True,
+    )
+    assert result.stdout == "[Channel][input]\nHola"
 
 
 def test_short_references_resolve_from_mirror():
@@ -36,17 +64,6 @@ def test_runtime_example_uses_mirror_root():
     assert config["flow_paths"] == [
         "/usr/local/lib/python3.12/site-packages/packages"
     ]
-
-
-def test_telegram_instruction_is_loaded():
-    import yaml
-
-    root = ROOT / "packages/monito"
-    flow = yaml.safe_load((root / "monito.yaml").read_text())
-    agent = next(step for step in flow["steps"] if step.get("agent") == "monito")
-    reference = "./instructions/use-telegram.md"
-    assert reference in agent["instructions"]
-    assert (root / reference).is_file()
 
 
 def test_webhook_delivery_uses_workspace_cwd():

@@ -41,6 +41,7 @@ def test_valid_configuration():
         ("base_url", None),
         ("webhook", "/other/webhook"),
         ("webhook", "/telegram/start"),
+        ("webhook", "/telegram/typing"),
         ("webhook", "/telegram/../start"),
         ("webhook", "/telegram/{path}"),
         ("webhook", "/telegram/hook?q=1"),
