@@ -4,6 +4,10 @@ All notable changes to Monito are documented in this file.
 
 ## Unreleased
 
+- Nothing yet.
+
+## 0.1.0-beta.11 - 2026-11-09
+
 ### Documentation
 
 - Refresh the README with automatic Telegram replies and typing, optional Android control and its release image; clarify automatic Skiller server startup in the deployment workflow.
