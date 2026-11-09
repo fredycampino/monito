@@ -4,6 +4,10 @@ All notable changes to Monito are documented in this file.
 
 ## Unreleased
 
+- Nothing yet.
+
+## 0.1.0-beta.12 - 2026-11-09
+
 ### Added
 
 - Add a fresh-install `./install` command with release downloads, configuration rendering, Docker prerequisite checks, health verification and optional Skiller onboarding.
