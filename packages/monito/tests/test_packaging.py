@@ -59,11 +59,10 @@ def test_short_references_resolve_from_mirror():
         assert result.flow.flow_path == ROOT / "packages" / name / f"{name}.yaml"
 
 
-def test_runtime_example_uses_mirror_root():
+def test_runtime_example_declares_deployment_placeholders():
     config = json.loads((ROOT / "data-examples/monito/settings/config.json").read_text())
-    assert config["flow_paths"] == [
-        "/usr/local/lib/python3.12/site-packages/packages"
-    ]
+    assert config["flow_paths"] == ["${MONITO_FLOW_PATH}"]
+    assert config["webhooks"] == {"host": "${MONITO_INTERNAL_IP}", "port": 8001}
 
 
 def test_webhook_delivery_uses_workspace_cwd():
@@ -72,3 +71,10 @@ def test_webhook_delivery_uses_workspace_cwd():
     flow = yaml.safe_load((ROOT / "packages/webhook/webhook.yaml").read_text())
     delivery = next(step for step in flow["steps"] if step.get("shell") == "deliver_event")
     assert delivery["cwd"] == "/data/workspace"
+
+
+def test_ggets_example_declares_deployment_placeholders():
+    config = json.loads((ROOT / "data-examples/ggets/config.json").read_text())
+    assert config["server"] == {"host": "${GGETS_INTERNAL_IP}", "port": 8000}
+    assert config["telegram"]["receiver_host"] == "${GGETS_TELEGRAM_IP}"
+    assert config["telegram"]["receiver_port"] == "${GGETS_TELEGRAM_PORT}"

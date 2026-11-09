@@ -4,7 +4,20 @@ All notable changes to Monito are documented in this file.
 
 ## Unreleased
 
-- Nothing yet.
+### Added
+
+- Add a fresh-install `./install` command with release downloads, configuration rendering, Docker prerequisite checks, health verification and optional Skiller onboarding.
+
+### Changed
+
+- Use explicit deployment placeholders in Runtime and Ggets configuration examples; render them before startup rather than relying on Skiller to expand variables.
+
+- Rename the external Monito tool profile to `monito.agente.json` to distinguish it from Skiller’s global `agent.json`; existing deployments must rename the host file and use the updated Compose mount.
+
+
+### Documentation
+
+- Remove the personal server name from Android deployment instructions.
 
 ## 0.1.0-beta.11 - 2026-11-09
 

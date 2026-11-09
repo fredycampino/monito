@@ -14,7 +14,7 @@ Authoritative project references:
 - docs/todo/: local pending work, currently ignored by Git.
 
 Box uses /data/workspace and HOME=/data/home; its installed code is read-only.
-Runtime and agent profiles mount at /etc/monito/config.json and agent.json.
+Runtime and agent profiles mount at /etc/monito/config.json and monito.agente.json.
 The host development repositories are not mounted in Box. Never infer host
 access from a container path. Shell permissions and command allowlists differ.
 

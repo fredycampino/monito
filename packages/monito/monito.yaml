@@ -30,7 +30,7 @@ steps:
   # Harness working.
   - agent: monito
     config:
-      file: "/etc/monito/agent.json"
+      file: "/etc/monito/monito.agente.json"
     system:
       file: "./system.md"
     instructions:

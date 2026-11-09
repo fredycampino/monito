@@ -80,7 +80,7 @@ jobs:
 
       - name: Validate configuration
         run: |
-          python -m json.tool data-examples/monito/settings/agent.json > /dev/null
+          python -m json.tool data-examples/monito/settings/monito.agente.json > /dev/null
           HOST_UID=1000 HOST_GID=1000 docker compose config > /dev/null
 
       - name: Build Monito image

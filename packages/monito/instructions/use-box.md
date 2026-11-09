@@ -13,7 +13,7 @@ shared internal network. The tree below shows your container, not the host.
 │   └── workspace/                    # Working directory; persistent, read/write
 ├── etc/monito/
 │   ├── config.json                   # Runtime configuration; read-only host mount
-│   └── agent.json                    # Agent profile; read-only host mount
+│   └── monito.agente.json                    # Agent profile; read-only host mount
 ├── usr/local/lib/python3.12/site-packages/packages/
 │   ├── monito/                       # Installed agent resources; read-only
 │   │   ├── monito.yaml               # @monito

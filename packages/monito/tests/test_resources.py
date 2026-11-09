@@ -18,5 +18,5 @@ def test_flow():
             assert files("apps").joinpath("instructions", f"{reference}.md").is_file()
         else:
             assert (root / reference).is_file()
-    assert agent["config"] == {"file": "/etc/monito/agent.json"}
+    assert agent["config"] == {"file": "/etc/monito/monito.agente.json"}
     assert (root / agent["system"]["file"]).is_file()

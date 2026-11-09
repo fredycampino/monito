@@ -59,7 +59,7 @@ preserve its HOME. Adding the network and environment recreates Monito and
 interrupts its processes. The publication workflow now builds monito-mobile
 alongside the base images; this working-tree change has not published an image.
 For production, select and pull the same explicit published release for all
-three images before recreating any service. Do not build on Max.
+three images before recreating any service. Do not build on the deployment server.
 
 ```bash
 docker compose -f compose.yaml -f docker/compose.mobile.yaml up -d --no-build

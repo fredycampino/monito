@@ -97,7 +97,7 @@ Container filesystem (`RW` = writable bind mount; `RO` = read-only):
   .skiller/db/agent.db              Persistent runtime database
   .skiller/                        Personal Skiller settings and state
 /data/workspace/                    RW <- MONITO_WORKSPACE_HOST_DIR
-/etc/monito/agent.json              RO <- MONITO_SETTINGS_HOST_DIR/agent.json
+/etc/monito/monito.agente.json              RO <- MONITO_SETTINGS_HOST_DIR/monito.agente.json
 /etc/monito/config.json             RO <- MONITO_CONFIG_HOST_FILE
 /usr/local/lib/python3.12/site-packages/packages/  Installed flow resources
 /tmp/                              Temporary tmpfs
@@ -108,7 +108,7 @@ Runtime variables: `HOME=/data/home`,
 `SKILLER_RUNTIME_CONFIG_FILE=/etc/monito/config.json` (from `docker/monito.env`);
 `TERM` and `COLORTERM` come from Compose. The mobile overlay adds
 `ADB_SERVER_SOCKET=tcp:mobile:5037` and `APPIUM_URL=http://mobile:4723`.
-The flow explicitly loads `/etc/monito/agent.json`; runtime `flow_paths` uses the
+The flow explicitly loads `/etc/monito/monito.agente.json`; runtime `flow_paths` uses the
 installed packages directory for `@monito` and `@webhook`. This fixed path remains
 a limitation documented in [Flow path TODO](todo/fix-flows-path.md).
 
@@ -208,7 +208,7 @@ Host paths below are defaults, configurable in `docker/compose.env`:
 | --- | --- | --- | --- |
 | Monito | `data/monito/home` | `/data/home` | Read/write |
 | Monito | `data/monito/workspace` | `/data/workspace` | Read/write |
-| Monito | `data/monito/settings/agent.json` | `/etc/monito/agent.json` | Read-only |
+| Monito | `data/monito/settings/monito.agente.json` | `/etc/monito/monito.agente.json` | Read-only |
 | Monito | `data/monito/settings/config.json` | `/etc/monito/config.json` | Read-only |
 | Ggets | `data/ggets/config.json` | `/etc/ggets/config.json` | Read-only |
 | Ggets | `data/ggets/secrets` | `/run/secrets` | Read-only |
@@ -217,7 +217,7 @@ Host paths below are defaults, configurable in `docker/compose.env`:
 - `MONITO_CONFIG_HOST_FILE` selects the host runtime JSON;
   `SKILLER_RUNTIME_CONFIG_FILE=/etc/monito/config.json` selects it in Monito.
   It configures `flow_paths` and the Skiller webhook server address.
-- The mounted `agent.json` configures the Monito agent, separately from runtime
+- The mounted `monito.agente.json` configures the Monito agent, separately from runtime
   configuration. Personal Skiller settings/state also reside under `/data/home`.
 - `GGETS_CONFIG_HOST_FILE` selects the host JSON;
   `GGETS_CONFIG_FILE` selects `/etc/ggets/config.json` inside Ggets.
