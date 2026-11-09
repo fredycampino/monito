@@ -1,6 +1,6 @@
 {
   "server": {
-    "host": "172.28.0.2",
+    "host": "${GGETS_INTERNAL_IP}",
     "port": 8000
   },
   "health": {
@@ -10,7 +10,7 @@
     "bot_father_token_file": "/run/secrets/telegram_bot_token",
     "webhook_secret_file": "/run/secrets/telegram_webhook_secret",
     "state_file": "/data/telegram/state.json",
-    "receiver_host": "172.29.0.2",
-    "receiver_port": 8001
+    "receiver_host": "${GGETS_TELEGRAM_IP}",
+    "receiver_port": "${GGETS_TELEGRAM_PORT}"
   }
 }

@@ -29,8 +29,8 @@ services:
         bind:
           create_host_path: false
       - type: bind
-        source: ${MONITO_SETTINGS_HOST_DIR:-./data/monito/settings}/agent.json
-        target: /etc/monito/agent.json
+        source: ${MONITO_SETTINGS_HOST_DIR:-./data/monito/settings}/monito.agente.json
+        target: /etc/monito/monito.agente.json
         read_only: true
         bind:
           create_host_path: false

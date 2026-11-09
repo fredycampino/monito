@@ -15,7 +15,7 @@ see [Versioned deployment](deployment.md).
 1. Compose settings: `docker/compose.env` must contain the deployment settings described in `docker/compose.env.example`, including the host UID/GID. Local builds use an empty `IMAGE_PREFIX` and `RELEASE_VERSION=dev`, not published release tags.
 2. Container environment: `docker/monito.env` and `docker/ggets.env` must match the deployment.
 3. Data layout: `data/` must contain the structure provided by `data-examples/`, including configuration, home, workspace, secrets and state directories. Existing settings, credentials and state must be preserved.
-4. Application configuration: `data/monito/settings/agent.json`, `data/monito/settings/config.json` and `data/ggets/config.json` must match the deployment, with listen addresses aligned with Compose. Configuration generation is not implemented yet.
+4. Application configuration: `data/monito/settings/monito.agente.json`, `data/monito/settings/config.json` and `data/ggets/config.json` must match the deployment, with listen addresses aligned with Compose. The Runtime and Ggets examples are templates: replace every `${...}` placeholder with deployment values before startup, using an integer for `GGETS_TELEGRAM_PORT`. Skiller does not expand these placeholders. Automated configuration generation is not implemented yet.
 5. Credentials: the example placeholders must be replaced with valid credentials in `data/monito/home/.skiller/secrets/` and `data/ggets/secrets/`. Real credentials must remain outside Git, images and shell history.
 6. Access: the configured container UID/GID must have the required access to configuration and persistent data. Ggets secrets and state directories require mode `0700`; secret files require `0600`. Monito's mounted configuration files must exist before startup; missing paths cause startup to fail rather than creating root-owned directories.
 
@@ -149,7 +149,7 @@ no image rebuild is needed.
 | `MONITO_HOME_HOST_DIR` | `./data/monito/home` | `/data/home` (writable) |
 | `MONITO_WORKSPACE_HOST_DIR` | `./data/monito/workspace` | `/data/workspace` (writable) |
 | `MONITO_CONFIG_HOST_FILE` | `./data/monito/settings/config.json` | `/etc/monito/config.json` (read-only) |
-| `MONITO_SETTINGS_HOST_DIR` | `./data/monito/settings` | Only `agent.json`, mounted read-only at `/etc/monito/agent.json` |
+| `MONITO_SETTINGS_HOST_DIR` | `./data/monito/settings` | Only `monito.agente.json`, mounted read-only at `/etc/monito/monito.agente.json` |
 
 `SKILLER_RUNTIME_CONFIG_FILE=/etc/monito/config.json` selects the mounted runtime JSON.
 Its `flow_paths` points to `/usr/local/lib/python3.12/site-packages/packages`,
@@ -160,7 +160,7 @@ match `MONITO_INTERNAL_IP` and `webhooks.port` to the Skiller listener port
 (default `8001`), so Ggets can reach it over the internal network. Restart the
 Skiller server after changing its listening address.
 
-The profile destination is `/etc/monito/agent.json`, referenced directly by the
+The profile destination is `/etc/monito/monito.agente.json`, referenced directly by the
 flow. The wheel does not include an agent profile.
 Mounted configuration changes do not require rebuilding images. Start a new agent session to load profile changes; recreate containers when changing mount paths or environment variables. Close STUI sessions before recreating Monito.
 

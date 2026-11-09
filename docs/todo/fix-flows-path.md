@@ -17,7 +17,7 @@ and state. Keep the runtime JSON at the configured host path, mounted read-only
 at `/etc/monito/config.json`. No build-time or entrypoint generation.
 
 The agent profile is already external, mounted read-only at
-`/etc/monito/agent.json`; it is not part of the wheel and must not be overwritten.
+`/etc/monito/monito.agente.json`; it is not part of the wheel and must not be overwritten.
 
 ## Global agent limits
 

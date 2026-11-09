@@ -1,0 +1,7 @@
+#!/bin/sh
+# Keep installation logic independent of the caller's working directory.
+if ! command -v python3 >/dev/null 2>&1; then
+    echo 'ERROR [python]: Python 3.12+ is required; install it and retry.' >&2
+    exit 1
+fi
+exec python3 "$(dirname "$0")/scripts/install_helper.py" "$@"

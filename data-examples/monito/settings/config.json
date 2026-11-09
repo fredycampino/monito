@@ -1,9 +1,9 @@
 {
   "flow_paths": [
-    "/usr/local/lib/python3.12/site-packages/packages"
+    "${MONITO_FLOW_PATH}"
   ],
   "webhooks": {
-    "host": "172.28.0.3",
+    "host": "${MONITO_INTERNAL_IP}",
     "port": 8001
   }
 }

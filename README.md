@@ -36,6 +36,22 @@ installation. See [Nexo](nexo/README.md) for its profile and global settings.
 - `data-examples/`: configuration and persistent-data layout examples, not live data.
 - `docs/`: architecture, development rules and operating procedures.
 
+## Fresh installation
+
+On a Linux host with Python 3.12+, local Docker Engine and Compose 2.33.1+,
+run `./install --version <published-version> --dir <empty-directory>` from this
+checkout. The selected release must contain the installer-compatible deployment
+templates; older releases may not support this layout. No images are built locally.
+Use `--image-prefix <registry-namespace/>` to override the published image namespace.
+
+The installer refuses existing installations, checks for network conflicts and
+preserves data on failure. It generates `.env` beside `compose.yaml`; run ordinary
+`docker compose` commands from that installation directory. Docker socket access
+may require explicit sudo authorization; do not run the whole installer with sudo.
+After successful health checks, it offers to open Skiller for authentication.
+It does not configure providers, credentials, tunnels, Telegram or Android.
+See [Installation workflow](docs/workflow-install.md) for the detailed contract.
+
 ## Local development
 
 ### Installation
