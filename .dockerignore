@@ -1,0 +1,21 @@
+.git
+.venv
+__pycache__
+.pytest_cache
+.ruff_cache
+dist
+runtime.db
+data/
+compose.env
+.env
+.env.*
+docs/todo
+legacy
+
+config.ggets.dev.json
+.venv-*
+
+**/node_modules
+
+# Exclude development-agent context and local environment details
+nexo/

@@ -1,0 +1,28 @@
+name: nexo
+description: "Development agent for Monito, Ggets and deployments"
+version: "0.1"
+start: ask_user
+inputs: {}
+steps:
+  - wait_input: ask_user
+    prompt: "¿Qué desarrollamos hoy?"
+    next: nexo
+  - agent: nexo
+    config:
+      file: "./agent.dev.json"
+    system:
+      file: "./system.md"
+    instructions:
+      - "./instructions/development.md"
+      - "./instructions/use-repo.md"
+      - "create-flows"
+      - "solve-task-style"
+      - "response-style"
+      - "skiller-user"
+      - "./instructions/project-context.md"
+    task: '{{output_value("ask_user").payload.text}}'
+    tools:
+      - files
+      - shell
+    max_turns: 50
+    next: ask_user

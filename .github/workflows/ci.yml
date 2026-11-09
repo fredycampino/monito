@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install verification dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest ruff httpx build hatchling
+          python -m pip install -e packages/tools -e packages/monito
+
+      - name: Validate branch shape
+        env:
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+          GITHUB_HEAD_REF: ${{ github.head_ref }}
+        run: |
+          case "$GITHUB_HEAD_REF" in
+            feature/*) head_prefix='feature/'; pr_kind='feature' ;;
+            release/*) head_prefix='release/'; pr_kind='release' ;;
+            *)
+              echo "PR branch must start with feature/ or release/, got: $GITHUB_HEAD_REF" >&2
+              exit 1
+              ;;
+          esac
+
+          python scripts/ci/validate_pr_branch.py \
+            --base-ref "$GITHUB_BASE_REF" \
+            --expected-base main \
+            --head-ref "$GITHUB_HEAD_REF" \
+            --head-prefix "$head_prefix"
+          echo "pr_kind=$pr_kind" >> "$GITHUB_ENV"
+
+      - name: Validate feature changelog
+        if: env.pr_kind == 'feature'
+        env:
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+        run: |
+          python scripts/ci/validate_feature_pr.py \
+            --base-ref "$GITHUB_BASE_REF" \
+            --expected-base main
+
+      - name: Validate release metadata
+        if: env.pr_kind == 'release'
+        env:
+          GITHUB_HEAD_REF: ${{ github.head_ref }}
+        run: python scripts/ci/validate_release_pr.py --head-ref "$GITHUB_HEAD_REF"
+
+      - name: Run Ruff
+        run: python -m ruff check .
+
+      - name: Run tests
+        run: |
+          python -m pytest
+
+      - name: Validate configuration
+        run: |
+          python -m json.tool data-examples/monito/settings/agent.json > /dev/null
+          HOST_UID=1000 HOST_GID=1000 docker compose config > /dev/null
+
+      - name: Build Monito image
+        run: docker build -f docker/Dockerfile.monito --tag monito-box:ci .
+
+      - name: Verify Ggets image
+        run: |
+          docker build -f docker/Dockerfile.ggets -t ggets:ci .
+          docker run --rm --network none --read-only ggets:ci --help
+
+      - name: Verify optional mobile deployment
+        run: |
+          ADB_USB_GID=46 docker compose -f compose.yaml -f docker/compose.mobile.yaml config --quiet
+          docker build -f docker/Dockerfile.mobile -t monito-mobile:ci .
+          python scripts/ci/check-mobile.py
+
+      - name: Build distributions
+        run: |
+          python -m build packages/tools
+          python -m build packages/monito

@@ -1,0 +1,27 @@
+.venv/
+node_modules/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+dist/
+runtime.db
+.env
+.env.*
+compose.env
+data/
+!.env.example
+docs/todo
+legacy/
+.venv-*/
+config.ggets.dev.json
+
+/_data/
+
+# Nexo local investigation artifacts
+nexo/.tmp/
+
+# Local Nexo agent permissions and configuration
+/nexo/agent.dev.json
+
+# Private Nexo environment context (never package or commit)
+/nexo/local/

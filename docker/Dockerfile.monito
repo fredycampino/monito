@@ -1,0 +1,15 @@
+FROM python:3.12-slim
+RUN apt-get update && apt-get install -y --no-install-recommends adb \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates procps git chromium chromium-sandbox \
+    && rm -rf /var/lib/apt/lists/*
+ENV HOME=/data/home PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+COPY packages/monito /build/monito
+COPY packages/webhook /build/webhook
+RUN pip install --no-cache-dir /build/monito browser-harness==0.1.13 ddgs==9.16.0 && rm -rf /build
+COPY --chmod=755 docker/monito-entrypoint.sh /usr/local/bin/monito-entrypoint
+WORKDIR /data/workspace
+USER 10001:10001
+ENTRYPOINT ["/usr/local/bin/monito-entrypoint"]
+CMD ["sleep", "infinity"]

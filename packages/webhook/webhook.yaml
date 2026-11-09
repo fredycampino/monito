@@ -1,0 +1,35 @@
+name: webhook_listener
+description: Forward webhook payloads as labeled notifications to a subscriber run.
+version: "0.1"
+start: register_webhook
+inputs:
+  run_id: string
+  webhook: string
+  key: string
+  labels: string
+steps:
+  - shell: register_webhook
+    command: |
+      registration=$(skiller webhook register "$WEBHOOK_NAME" --method POST --auth none --payload-source body_json)
+      printf '%s' "$registration" | "{{runtime.python}}" -c 'import json, sys; result = json.load(sys.stdin); status = result.get("status"); print(status); sys.exit(0 if status in ("REGISTERED", "ALREADY_REGISTERED") else 1)'
+    cwd: "{{flow.dir}}"
+    env:
+      WEBHOOK_NAME: "{{inputs.webhook}}"
+    timeout: 30
+    next: wait_message
+  - wait_webhook: wait_message
+    webhook: "{{inputs.webhook}}"
+    key: "{{inputs.key}}"
+    next: deliver_event
+  - shell: deliver_event
+    command: |
+      notification=$(printf '%s\n%s' "$NOTIFICATION_LABELS" "$WEBHOOK_EVENT")
+      timeout --kill-after=5s 30s skiller input receive "$SUBSCRIBER_RUN_ID" --text="$notification"
+    cwd: "/data/workspace"
+    env:
+      SUBSCRIBER_RUN_ID: "{{inputs.run_id}}"
+      NOTIFICATION_LABELS: "{{inputs.labels}}"
+      WEBHOOK_EVENT: '{{output_value("wait_message").payload}}'
+    timeout: 45
+    check: false
+    next: wait_message
